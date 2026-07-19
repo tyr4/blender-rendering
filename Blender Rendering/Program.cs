@@ -67,10 +67,21 @@ class Program
     
     public static void Main(string[] args)
     {
-        StartPythonProcess("/home/mihai/PycharmProjects/blender-stuff/.venv/bin/python", "/home/mihai/PycharmProjects/blender-stuff/main.py");
-        
-        var settings = new Settings();
+        string json = File.ReadAllText("/home/mihai/RiderProjects/blender_rendering/Blender Rendering/settings.json");
+        var settings = JsonSerializer.Deserialize<Settings>(json);
 
+        StartPythonProcess(settings!.python_interpreter, settings.python_file_path);
+        
+        
+        // var settings = new Settings();
+        // var jason = JsonSerializer.Serialize(settings, new JsonSerializerOptions
+        // {
+        //     WriteIndented = true
+        // });
+        //
+        // Console.WriteLine(jason);
+        // File.WriteAllText("settings.json", jason);
+        
         settings.current_command = "init_scene";
         string response = SendCommand(settings);
         Console.WriteLine("response: " + response);

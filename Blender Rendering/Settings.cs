@@ -1,11 +1,13 @@
 public class Settings
 {
     public string current_command { get; set; } = "";
-    public string scene_path { get; set; } = "/home/mihai/Blender Stuff/Scenes/empty_scene.blend";
-    public string fbx_path { get; set; } = "/home/mihai/Blender Stuff/Models/robot/episode_71.fbx";
-    public string render_temp_output_path { get; set; } = "/home/mihai/Blender Stuff/Output/spider_test/";
+    public string python_interpreter { get; set; } = "";
+    public string python_file_path { get; set; } = "";
+    public string scene_path { get; set; } = "";
+    public string fbx_path { get; set; } = "";
+    public string render_temp_output_path { get; set; } = "";
     public string render_temp_output_name { get; set; } = "anim_";
-    public string spritesheet_output_path { get; set; } = "/home/mihai/Blender Stuff/Output/spider_test/";
+    public string spritesheet_output_path { get; set; } = "";
     public int directions { get; set; } = 4;
     public int resolution_x { get; set; } = 128;
     public int resolution_y { get; set; } = 128;
