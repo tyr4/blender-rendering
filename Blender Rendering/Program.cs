@@ -72,16 +72,6 @@ class Program
 
         StartPythonProcess(settings!.python_interpreter, settings.python_file_path);
         
-        
-        // var settings = new Settings();
-        // var jason = JsonSerializer.Serialize(settings, new JsonSerializerOptions
-        // {
-        //     WriteIndented = true
-        // });
-        //
-        // Console.WriteLine(jason);
-        // File.WriteAllText("settings.json", jason);
-        
         settings.current_command = "init_scene";
         string response = SendCommand(settings);
         Console.WriteLine("response: " + response);

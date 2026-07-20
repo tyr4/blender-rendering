@@ -20,6 +20,7 @@ bld/
 # Visual Studio / Rider files
 .vs/
 .idea/
+../.idea/
 *.user
 *.userosscache
 *.sln.docstates
@@ -54,7 +55,6 @@ artifacts/
 # Rider/ReSharper caches
 _ReSharper*/
 *.[Rr]e[Ss]harper
-*.DotSettings.user
 
 # OS-specific junk
 .DS_Store
@@ -62,8 +62,6 @@ Thumbs.db
 
 # User-specific files
 *.rsuser
-*.suo
-*.user
 *.userprefs
 
 # Environment / secrets
