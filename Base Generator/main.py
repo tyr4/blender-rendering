@@ -276,6 +276,9 @@ def handle_command(settings: dict):
 
         elif cmd == "shutdown":
             shutdown()
+            
+        else:
+            return send_response({"status": "error", "message": f"invalid command: {cmd}"})
 
     except KeyError as e:
         return send_response({"status": "error", "message": f"missing required field: {e}"})
@@ -301,7 +304,6 @@ def main():
             continue
 
         result = handle_command(settings)
-        send_response(result)
 
 spritesheet_output_name = "spritesheet"
 
