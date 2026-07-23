@@ -94,8 +94,7 @@ InitTestScene*.unity*
 /[Aa]ssets/Addressables_Temp*
 
 # whitelist rules for .meta files
-/Assets/Sprites/*
-!/Assets/Sprites/
+/Assets/Sprites/**
 !/Assets/Sprites/**/
 !/Assets/Sprites/**/*.meta
 
