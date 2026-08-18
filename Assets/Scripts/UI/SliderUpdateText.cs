@@ -4,21 +4,13 @@ using UnityEngine.UI;
 
 public class SliderUpdateText : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI targetText;
-
-    [Header("Slider Properties")] 
-    [SerializeField] private bool wholeNumbers;
-    [SerializeField] private float min, max;
+    [SerializeField] private TMP_InputField targetText;
 
     private Slider _slider;
     
     private void Start()
     {
         _slider = GetComponent<Slider>();
-        
-        _slider.wholeNumbers = wholeNumbers;
-        _slider.minValue = min;
-        _slider.maxValue = max;
         
         OnValueChanged();
     }
@@ -34,7 +26,7 @@ public class SliderUpdateText : MonoBehaviour
     public void OnValueChanged()
     {
         if (targetText == null || _slider == null) return;
-        
-        targetText.text = $"{_slider.value:F2}";
+
+        targetText.text = _slider.wholeNumbers ? $"{_slider.value:F0}" : $"{_slider.value:F2}";
     }
 }

@@ -1,0 +1,1859 @@
+fileFormatVersion: 2
+guid: cd029b703ef3581449bc04d39c05cf77
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1284621139829782720
+    second: waste_no_space_64x64_gui_0
+  - first:
+      213: -4533875095379622726
+    second: waste_no_space_64x64_gui_1
+  - first:
+      213: -5170117916789359340
+    second: waste_no_space_64x64_gui_2
+  - first:
+      213: -8415314118290862534
+    second: waste_no_space_64x64_gui_3
+  - first:
+      213: -4080552490156788729
+    second: waste_no_space_64x64_gui_4
+  - first:
+      213: 4369978780568979356
+    second: waste_no_space_64x64_gui_5
+  - first:
+      213: -8189923569589891761
+    second: waste_no_space_64x64_gui_6
+  - first:
+      213: -7151064324339093855
+    second: waste_no_space_64x64_gui_7
+  - first:
+      213: -6752682122522284888
+    second: waste_no_space_64x64_gui_8
+  - first:
+      213: 1472335366050057546
+    second: waste_no_space_64x64_gui_9
+  - first:
+      213: 1870337444943554185
+    second: waste_no_space_64x64_gui_10
+  - first:
+      213: 1893512744638024200
+    second: waste_no_space_64x64_gui_11
+  - first:
+      213: -2465061701517850455
+    second: waste_no_space_64x64_gui_12
+  - first:
+      213: -1495435871871845098
+    second: waste_no_space_64x64_gui_13
+  - first:
+      213: 8948861375421891106
+    second: waste_no_space_64x64_gui_14
+  - first:
+      213: 5918748472868313563
+    second: waste_no_space_64x64_gui_15
+  - first:
+      213: 3081876979438364820
+    second: waste_no_space_64x64_gui_16
+  - first:
+      213: 8751793966229703129
+    second: waste_no_space_64x64_gui_17
+  - first:
+      213: 3443733033558129586
+    second: waste_no_space_64x64_gui_18
+  - first:
+      213: 8723673008748301782
+    second: waste_no_space_64x64_gui_19
+  - first:
+      213: -3717226181366403601
+    second: waste_no_space_64x64_gui_20
+  - first:
+      213: 3193790573405674443
+    second: waste_no_space_64x64_gui_21
+  - first:
+      213: 1612270819832008293
+    second: waste_no_space_64x64_gui_22
+  - first:
+      213: 8874778366983085920
+    second: waste_no_space_64x64_gui_23
+  - first:
+      213: 6349900094158220913
+    second: waste_no_space_64x64_gui_24
+  - first:
+      213: 3844912689894175178
+    second: waste_no_space_64x64_gui_25
+  - first:
+      213: 8590533259213624406
+    second: waste_no_space_64x64_gui_26
+  - first:
+      213: 7574441836365840873
+    second: waste_no_space_64x64_gui_27
+  - first:
+      213: -8562747887535939781
+    second: waste_no_space_64x64_gui_28
+  - first:
+      213: -8736615433684453292
+    second: waste_no_space_64x64_gui_29
+  - first:
+      213: 8697503873341771986
+    second: waste_no_space_64x64_gui_30
+  - first:
+      213: -8996204756390495853
+    second: waste_no_space_64x64_gui_31
+  - first:
+      213: 8494070784931063935
+    second: waste_no_space_64x64_gui_32
+  - first:
+      213: -2338674763021628676
+    second: waste_no_space_64x64_gui_33
+  - first:
+      213: 2098102333667096134
+    second: waste_no_space_64x64_gui_34
+  - first:
+      213: 8955455301054210336
+    second: waste_no_space_64x64_gui_35
+  - first:
+      213: -392868604578602605
+    second: waste_no_space_64x64_gui_36
+  - first:
+      213: 2041508870656432737
+    second: waste_no_space_64x64_gui_37
+  - first:
+      213: 7140297485679637549
+    second: waste_no_space_64x64_gui_38
+  - first:
+      213: 3143836577679655664
+    second: waste_no_space_64x64_gui_39
+  - first:
+      213: -558801708845295501
+    second: waste_no_space_64x64_gui_40
+  - first:
+      213: 1895655436797406495
+    second: waste_no_space_64x64_gui_41
+  - first:
+      213: -3773558264755905110
+    second: waste_no_space_64x64_gui_42
+  - first:
+      213: -8622412270202064206
+    second: waste_no_space_64x64_gui_43
+  - first:
+      213: -3275071339507628972
+    second: waste_no_space_64x64_gui_44
+  - first:
+      213: 6368958596950393753
+    second: waste_no_space_64x64_gui_45
+  - first:
+      213: -1417396365391410082
+    second: waste_no_space_64x64_gui_46
+  - first:
+      213: 3528632056572322955
+    second: waste_no_space_64x64_gui_47
+  - first:
+      213: 1622523788765390230
+    second: waste_no_space_64x64_gui_48
+  - first:
+      213: -3890146130690666964
+    second: waste_no_space_64x64_gui_49
+  - first:
+      213: -6342459563136308902
+    second: waste_no_space_64x64_gui_50
+  - first:
+      213: 2255470483777133742
+    second: waste_no_space_64x64_gui_51
+  - first:
+      213: -5706429757069764333
+    second: waste_no_space_64x64_gui_52
+  - first:
+      213: -1347599285853444413
+    second: waste_no_space_64x64_gui_53
+  - first:
+      213: 2385238405868485680
+    second: waste_no_space_64x64_gui_54
+  - first:
+      213: 7578810835805408382
+    second: waste_no_space_64x64_gui_55
+  - first:
+      213: -174347243340277964
+    second: waste_no_space_64x64_gui_56
+  - first:
+      213: 5551470845776946149
+    second: waste_no_space_64x64_gui_57
+  - first:
+      213: 8366987698176086039
+    second: waste_no_space_64x64_gui_58
+  - first:
+      213: 3265095972951377150
+    second: waste_no_space_64x64_gui_59
+  - first:
+      213: 3755572479806482012
+    second: waste_no_space_64x64_gui_60
+  - first:
+      213: 6598699709711020724
+    second: waste_no_space_64x64_gui_61
+  - first:
+      213: 3465369464608456891
+    second: waste_no_space_64x64_gui_62
+  - first:
+      213: -5968707497667718078
+    second: waste_no_space_64x64_gui_63
+  - first:
+      213: -6650743560625497573
+    second: waste_no_space_64x64_gui_64
+  - first:
+      213: 5262016797005528777
+    second: waste_no_space_64x64_gui_65
+  - first:
+      213: -3912475685164582541
+    second: waste_no_space_64x64_gui_66
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 57
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c8f286de14e3d110800000000000000
+      internalID: 1284621139829782720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 51
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab448eb4f907411c0800000000000000
+      internalID: -4533875095379622726
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_2
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 57
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41d33eaa52d0048b0800000000000000
+      internalID: -5170117916789359340
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_3
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 51
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3e81f9456cc63b80800000000000000
+      internalID: -8415314118290862534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_4
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 57
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7047ed04127fe57c0800000000000000
+      internalID: -4080552490156788729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_5
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 51
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c970fcb3c8845ac30800000000000000
+      internalID: 4369978780568979356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_6
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 55
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4dcef0d7eb875e80800000000000000
+      internalID: -8189923569589891761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_7
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 53
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1aeaccd82e052cc90800000000000000
+      internalID: -7151064324339093855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_8
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 54
+        width: 5
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 2, y: 4, z: 2, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8acade50367a942a0800000000000000
+      internalID: -6752682122522284888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_9
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 53
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4d88a3f639ce6410800000000000000
+      internalID: 1472335366050057546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_10
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 57
+        width: 16
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 986e8f72ff5c4f910800000000000000
+      internalID: 1870337444943554185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_11
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 51
+        width: 13
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80a03d91fcb174a10800000000000000
+      internalID: 1893512744638024200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_12
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 47
+        width: 8
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a8cb9361775acdd0800000000000000
+      internalID: -2465061701517850455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_13
+      rect:
+        serializedVersion: 2
+        x: 59
+        y: 58
+        width: 5
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61db3b86ff42f3be0800000000000000
+      internalID: -1495435871871845098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_14
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 45
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2224c32020eb03c70800000000000000
+      internalID: 8948861375421891106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_15
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 46
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 2, y: 2, z: 2, w: 2}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd99330906e932250800000000000000
+      internalID: 5918748472868313563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_16
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 45
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 498a0e8c8c605ca20800000000000000
+      internalID: 3081876979438364820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_17
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 47
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d947884e3e947970800000000000000
+      internalID: 8751793966229703129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_18
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 39
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bbb286c2f89acf20800000000000000
+      internalID: 3443733033558129586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_19
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 47
+        width: 11
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dd0b17a166b01970800000000000000
+      internalID: 8723673008748301782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_20
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 41
+        width: 11
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fedafd59b72c96cc0800000000000000
+      internalID: -3717226181366403601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_21
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 47
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcb16d6ea9f925c20800000000000000
+      internalID: 3193790573405674443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_22
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 42
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56e80d9b4cfef5610800000000000000
+      internalID: 1612270819832008293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_23
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 45
+        width: 13
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06f195877eb892b70800000000000000
+      internalID: 8874778366983085920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_24
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 20
+        width: 10
+        height: 27
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17e258f0e706f1850800000000000000
+      internalID: 6349900094158220913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_25
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 39
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac1b88168bfdb5530800000000000000
+      internalID: 3844912689894175178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_26
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 33
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6545b921c74b73770800000000000000
+      internalID: 8590533259213624406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_27
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 40
+        width: 5
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 2, y: 2, z: 2, w: 2}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e1817418b2dd1960800000000000000
+      internalID: 7574441836365840873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_28
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 33
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3f9136e9220b2980800000000000000
+      internalID: -8562747887535939781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_29
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 39
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 458fa083d8e41c680800000000000000
+      internalID: -8736615433684453292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_30
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 28
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d0de1301bdb3b870800000000000000
+      internalID: 8697503873341771986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_31
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 35
+        width: 11
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3993aa0207f072380800000000000000
+      internalID: -8996204756390495853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_32
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 36
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f78e6d8106001e570800000000000000
+      internalID: 8494070784931063935
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_33
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 39
+        width: 13
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfacce0a1bb5b8fd0800000000000000
+      internalID: -2338674763021628676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_34
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 28
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64635acc4f4fd1d10800000000000000
+      internalID: 2098102333667096134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_35
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 27
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 021a935f52b284c70800000000000000
+      internalID: 8955455301054210336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_36
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 27
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39160bce5104c8af0800000000000000
+      internalID: -392868604578602605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_37
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 21
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16a19416085e45c10800000000000000
+      internalID: 2041508870656432737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_38
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 22
+        width: 11
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d24bc887bbe671360800000000000000
+      internalID: 7140297485679637549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_39
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 29
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f2c97ce5b621ab20800000000000000
+      internalID: 3143836577679655664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_40
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 29
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37815647eccbe38f0800000000000000
+      internalID: -558801708845295501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_41
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 20
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1de8de7398be4a10800000000000000
+      internalID: 1895655436797406495
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_42
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 29
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aad1cf950c0a1abc0800000000000000
+      internalID: -3773558264755905110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_43
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 20
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b2f2a749b9075880800000000000000
+      internalID: -8622412270202064206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_44
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 21
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 454c59208fb9c82d0800000000000000
+      internalID: -3275071339507628972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_45
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 15
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99306688916136850800000000000000
+      internalID: 6368958596950393753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_46
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 21
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5c4aeee385645ce0800000000000000
+      internalID: -1417396365391410082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_47
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 15
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b84ac03f82838f030800000000000000
+      internalID: 3528632056572322955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_48
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 15
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6956bf41acc548610800000000000000
+      internalID: 1622523788765390230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_49
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 15
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2e82db74bc630ac0800000000000000
+      internalID: -3890146130690666964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_50
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 13
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a592bf091ae0bf7a0800000000000000
+      internalID: -6342459563136308902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_51
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 13
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eac1aea747a0d4f10800000000000000
+      internalID: 2255470483777133742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_52
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 13
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3195322be50bec0b0800000000000000
+      internalID: -5706429757069764333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_53
+      rect:
+        serializedVersion: 2
+        x: 47
+        y: 11
+        width: 17
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c6a223e69d5c4de0800000000000000
+      internalID: -1347599285853444413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_54
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 10
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03cf86e41b11a1120800000000000000
+      internalID: 2385238405868485680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_55
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 5
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7c00180d485d2960800000000000000
+      internalID: 7578810835805408382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_56
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 14
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 437522d1b18949df0800000000000000
+      internalID: -174347243340277964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_57
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 6
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e3e87f3259ca0d40800000000000000
+      internalID: 5551470845776946149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_58
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 6
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71059d53bf28d1470800000000000000
+      internalID: 8366987698176086039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_59
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 0
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef44359fc73ff4d20800000000000000
+      internalID: 3265095972951377150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_60
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 6
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c562913c5497e1430800000000000000
+      internalID: 3755572479806482012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_61
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 0
+        width: 12
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b27cc0bc6a439b50800000000000000
+      internalID: 6598699709711020724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_62
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 6
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb00971fa27771030800000000000000
+      internalID: 3465369464608456891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_63
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 6
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2441e498724ea2da0800000000000000
+      internalID: -5968707497667718078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_64
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 0
+        width: 28
+        height: 14
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1a53b008ffc3b3a0800000000000000
+      internalID: -6650743560625497573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_65
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 6
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ce37a3c560760940800000000000000
+      internalID: 5262016797005528777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waste_no_space_64x64_gui_66
+      rect:
+        serializedVersion: 2
+        x: 58
+        y: 0
+        width: 6
+        height: 18
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3797961f71814b9c0800000000000000
+      internalID: -3912475685164582541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 2795c3fe8e0cc6e46b5896d8afea0a5e
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      waste_no_space_64x64_gui_0: 1284621139829782720
+      waste_no_space_64x64_gui_1: -4533875095379622726
+      waste_no_space_64x64_gui_10: 1870337444943554185
+      waste_no_space_64x64_gui_11: 1893512744638024200
+      waste_no_space_64x64_gui_12: -2465061701517850455
+      waste_no_space_64x64_gui_13: -1495435871871845098
+      waste_no_space_64x64_gui_14: 8948861375421891106
+      waste_no_space_64x64_gui_15: 5918748472868313563
+      waste_no_space_64x64_gui_16: 3081876979438364820
+      waste_no_space_64x64_gui_17: 8751793966229703129
+      waste_no_space_64x64_gui_18: 3443733033558129586
+      waste_no_space_64x64_gui_19: 8723673008748301782
+      waste_no_space_64x64_gui_2: -5170117916789359340
+      waste_no_space_64x64_gui_20: -3717226181366403601
+      waste_no_space_64x64_gui_21: 3193790573405674443
+      waste_no_space_64x64_gui_22: 1612270819832008293
+      waste_no_space_64x64_gui_23: 8874778366983085920
+      waste_no_space_64x64_gui_24: 6349900094158220913
+      waste_no_space_64x64_gui_25: 3844912689894175178
+      waste_no_space_64x64_gui_26: 8590533259213624406
+      waste_no_space_64x64_gui_27: 7574441836365840873
+      waste_no_space_64x64_gui_28: -8562747887535939781
+      waste_no_space_64x64_gui_29: -8736615433684453292
+      waste_no_space_64x64_gui_3: -8415314118290862534
+      waste_no_space_64x64_gui_30: 8697503873341771986
+      waste_no_space_64x64_gui_31: -8996204756390495853
+      waste_no_space_64x64_gui_32: 8494070784931063935
+      waste_no_space_64x64_gui_33: -2338674763021628676
+      waste_no_space_64x64_gui_34: 2098102333667096134
+      waste_no_space_64x64_gui_35: 8955455301054210336
+      waste_no_space_64x64_gui_36: -392868604578602605
+      waste_no_space_64x64_gui_37: 2041508870656432737
+      waste_no_space_64x64_gui_38: 7140297485679637549
+      waste_no_space_64x64_gui_39: 3143836577679655664
+      waste_no_space_64x64_gui_4: -4080552490156788729
+      waste_no_space_64x64_gui_40: -558801708845295501
+      waste_no_space_64x64_gui_41: 1895655436797406495
+      waste_no_space_64x64_gui_42: -3773558264755905110
+      waste_no_space_64x64_gui_43: -8622412270202064206
+      waste_no_space_64x64_gui_44: -3275071339507628972
+      waste_no_space_64x64_gui_45: 6368958596950393753
+      waste_no_space_64x64_gui_46: -1417396365391410082
+      waste_no_space_64x64_gui_47: 3528632056572322955
+      waste_no_space_64x64_gui_48: 1622523788765390230
+      waste_no_space_64x64_gui_49: -3890146130690666964
+      waste_no_space_64x64_gui_5: 4369978780568979356
+      waste_no_space_64x64_gui_50: -6342459563136308902
+      waste_no_space_64x64_gui_51: 2255470483777133742
+      waste_no_space_64x64_gui_52: -5706429757069764333
+      waste_no_space_64x64_gui_53: -1347599285853444413
+      waste_no_space_64x64_gui_54: 2385238405868485680
+      waste_no_space_64x64_gui_55: 7578810835805408382
+      waste_no_space_64x64_gui_56: -174347243340277964
+      waste_no_space_64x64_gui_57: 5551470845776946149
+      waste_no_space_64x64_gui_58: 8366987698176086039
+      waste_no_space_64x64_gui_59: 3265095972951377150
+      waste_no_space_64x64_gui_6: -8189923569589891761
+      waste_no_space_64x64_gui_60: 3755572479806482012
+      waste_no_space_64x64_gui_61: 6598699709711020724
+      waste_no_space_64x64_gui_62: 3465369464608456891
+      waste_no_space_64x64_gui_63: -5968707497667718078
+      waste_no_space_64x64_gui_64: -6650743560625497573
+      waste_no_space_64x64_gui_65: 5262016797005528777
+      waste_no_space_64x64_gui_66: -3912475685164582541
+      waste_no_space_64x64_gui_7: -7151064324339093855
+      waste_no_space_64x64_gui_8: -6752682122522284888
+      waste_no_space_64x64_gui_9: 1472335366050057546
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
