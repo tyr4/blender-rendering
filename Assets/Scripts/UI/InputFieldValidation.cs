@@ -8,9 +8,11 @@ public class InputFieldValidation : MonoBehaviour
 {
     private TMP_InputField _inputField;
     
-    private readonly string _patternFloat = @"^(?!-*[0-9]*\.*[0-9]*$).*";
+    private readonly string _patternFloat = @"^-?[0-9]*\.?[0-9]*$";
     private readonly string _patternInt = @"^(?!-*[0-9]*$).*";
-    private string _selectedPattern;
+
+    private string _selectedPattern = @"^-?[0-9]*\.?[0-9]*$";
+    private string _lastValidText;
     
     public event Action<string> OnValueSanitized;
 
@@ -46,16 +48,17 @@ public class InputFieldValidation : MonoBehaviour
     
     private void OnValueChanged(string text)
     {
-        var sanitized = text;
-        // var sanitized = Regex.Replace(text, _patternFloat, "");
-        var matches = Regex.Matches(text, _selectedPattern);
-
-        if (matches.Count > 0)
-        {
-            sanitized = Regex.Replace(sanitized, @"[^0-9.\-]", "");
-        }
+        Debug.Log($"Current {text} last valid {_lastValidText}");
         
-        OnValueSanitized?.Invoke(sanitized);
-        _inputField.SetTextWithoutNotify(sanitized);
+        if (Regex.IsMatch(text, _selectedPattern))
+        {
+            _lastValidText = text;
+            OnValueSanitized?.Invoke(text);
+        }
+
+        else
+        {
+            _inputField.SetTextWithoutNotify(_lastValidText);
+        }
     }
 }

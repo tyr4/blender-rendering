@@ -2,28 +2,63 @@
 import json
 import sys
 import traceback
+import datetime
+
 
 import bpy
 from PIL import Image, ImageDraw
 import math
 
-has_init_scene = False
+has_loaded_scene = False
+
+def debug_log(msg, flush = True):
+    with open("D:/debug_log.txt", "a") as f:
+        f.write(f"{datetime.datetime.now()} - {msg}\n")
+        
+    print(msg, flush=flush)
 
 def _print_objects():
     for obj in bpy.data.objects:
-        print(obj.name, "| users:", obj.users, "| fake_user:", obj.use_fake_user)
+        debug_log(f"{obj.name} | users: {obj.users} | fake_user: {obj.use_fake_user}")
 
 def _print_animations():
     anims = list(bpy.data.actions)
 
     for i, anim in enumerate(anims):
         print(f"{i} - {anim.name}")
+        
+def return_objects() -> dict:
+    data = {"objects": []}
+
+    for obj in bpy.data.objects:
+        data["objects"].append(obj.name)
+    
+    return data
+    
+
+def return_animations() -> dict:
+    data = {"animations": []}
+    
+    for anim in bpy.data.actions:
+        data["animations"].append(anim.name)
+        
+    return data
 
 def load_scene(scene_path: str):
+    global has_loaded_scene
+    has_loaded_scene = True
+    
     return bpy.ops.wm.open_mainfile(filepath=scene_path)
 
 def load_fbx_model(scene_path: str):
-    return bpy.ops.import_scene.fbx(filepath=scene_path)
+    # has_loaded_fbx = True
+    debug_log("uite ba dau load la fbx")
+    debug_log(scene_path)
+    
+    result = bpy.ops.import_scene.fbx('EXEC_DEFAULT', filepath=scene_path)
+    debug_log(f"am {result}")
+    
+    return result
 
 def get_armature_object():
     armatures = [obj for obj in bpy.data.objects if obj.type == 'ARMATURE']
@@ -59,11 +94,7 @@ def change_camera_shift_y(shift: float):
 
     camera.data.shift_y = shift
 
-def init_scene(settings: dict, load_fbx: bool = True):
-    global has_init_scene
-    if has_init_scene:
-        return
-
+def init_scene(settings: dict, load_fbx: bool = False):
     load_scene(settings["scene_path"])
 
     if settings["fbx_path"] and load_fbx:
@@ -75,7 +106,6 @@ def init_scene(settings: dict, load_fbx: bool = True):
         armature.parent = parent_obj
 
     bpy.context.scene.camera = get_camera()
-    has_init_scene = True
 
 def render_animation(settings: dict, anim_index: int):
     armature = get_armature_object()
@@ -131,19 +161,23 @@ def save_spritesheet(settings: dict, output_name: str):
 
 def render_single_frame(settings: dict,
                         anim_index: int | None = None,
-                        frame: int = 1):
-    armature = get_armature_object()
+                        frame: int = 1) -> str:
+    armatures = [obj for obj in bpy.data.objects if obj.type == 'ARMATURE']
+    armature = armatures[0] if armatures else None
 
-    if anim_index is not None:
+    if armature is not None and anim_index is not None:
         target_action = bpy.data.actions[anim_index]
         anim_data = armature.animation_data_create()
         anim_data.action = target_action
         anim_data.action_slot = anim_data.action_suitable_slots[0]
-
+    elif armature is None:
+        print("Warning: anim_index given but no armature found, rendering scene as-is", flush=True)
+        
     scene = bpy.context.scene
     scene.frame_current = frame
 
-    scene.render.filepath = settings["render_temp_output_path"] + settings["render_temp_output_name"] + "static"
+    filepath = settings["render_temp_output_path"] + settings["render_temp_output_name"] + "static"
+    scene.render.filepath = filepath
 
     apply_settings_to_scene(settings)
 
@@ -151,6 +185,7 @@ def render_single_frame(settings: dict,
     add_borders(scene.render.filepath + ".png", scene.render.filepath + "_border.png")
 
     print(f"Rendered frame")
+    return filepath + ".png"
 
 def add_borders(image_path: str, output_path: str, border_size: int = 2, border_color: tuple = (255, 0, 0, 255)):
     img = Image.open(image_path)
@@ -167,7 +202,7 @@ def add_borders(image_path: str, output_path: str, border_size: int = 2, border_
     img.save(output_path)
 
 def run_calculator(settings):
-    init_scene(settings)
+    # init_scene(settings)
     apply_settings_to_scene(settings)
 
     step = 360 / settings["directions"]
@@ -245,8 +280,11 @@ def shutdown():
     print("am intrat in shutdown")
     exit(0)
 
-def send_response(result: dict):
-    print("RESPONSE_END_STDOUT" + json.dumps(result), flush=True)
+def send_response(result: dict, settings: dict = None):
+    if settings and "request_id" in settings:
+        result["request_id"] = settings["request_id"]
+
+    debug_log("RESPONSE_END_STDOUT" + json.dumps(result), flush=True)
 
     return result
 
@@ -255,37 +293,55 @@ def handle_command(settings: dict):
     valid = validate_settings(settings)
 
     if valid["status"] != "ok":
-        return send_response({"message": valid["message"]})
+        return send_response({"message": valid["message"]}, settings)
 
     try:
         print(f"entering {cmd} with:\n {settings}\n", flush=True)
+
+        # data commands
+        if cmd == "get_fbx_armatures":
+            rez = return_animations()
+            return send_response({"status": "success", "message": rez}, settings)
         
+        elif cmd == "get_objects":
+            rez = return_objects()
+            return send_response({"status": "success", "message": rez}, settings)
+
         # scene commands
-        if cmd == "load_scene":
+        elif cmd == "load_scene":
             init_scene(settings)
         
+        # dont think this is ever used
         elif cmd == "load_scene_no_fbx":
             init_scene(settings, load_fbx=False)
-        
+
+        elif cmd == "load_fbx":
+            if has_loaded_scene:
+                load_fbx_model(settings["fbx_path"])
+                debug_log("allegedly am dat load la fbx")
+            else:
+                return send_response({"status": "error", "message": f"scene has not been loaded"}, settings)
+
         # global scene commands
         elif cmd == "apply_settings":
             apply_settings_to_scene(settings)
             
         elif cmd == "render_single_frame":
-            render_single_frame(settings)
+            filepath = render_single_frame(settings)
+            return send_response({"status": "success", "message": filepath}, settings)
 
         elif cmd == "shutdown":
             shutdown()
             
         else:
-            return send_response({"status": "error", "message": f"invalid command: {cmd}"})
+            return send_response({"status": "error", "message": f"invalid command: {cmd}"}, settings)
 
     except KeyError as e:
-        return send_response({"status": "error", "message": f"missing required field: {e}"})
+        return send_response({"status": "error", "message": f"missing required field: {e}"}, settings)
     except Exception as e:
-        return send_response({"status": "error", "message": str(e), "traceback": traceback.format_exc()})
+        return send_response({"status": "error", "message": str(e), "traceback": traceback.format_exc()}, settings)
 
-    return send_response({"status": f"finished {cmd}"})
+    return send_response({"status": f"finished {cmd}"}, settings)
 
 # main entry point when the script is called
 def main():

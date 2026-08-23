@@ -1,6 +1,8 @@
+#nullable enable
 [System.Serializable]
 public class UserSettings
 {
+    public string request_id { get; set; } = "";
     public string current_command { get; set; } = "";
     public string python_interpreter { get; set; } = "";
     public string python_file_path { get; set; } = "";

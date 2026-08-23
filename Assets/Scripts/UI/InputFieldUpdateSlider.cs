@@ -26,7 +26,7 @@ public class InputFieldUpdateSlider : MonoBehaviour
     {
         if (float.TryParse(inputText, out var parsed))
         {
-            _slider.value = parsed;
+            _slider.SetValueWithoutNotify(parsed);
         }
     }
 }
