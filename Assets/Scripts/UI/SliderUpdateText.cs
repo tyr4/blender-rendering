@@ -27,6 +27,7 @@ public class SliderUpdateText : MonoBehaviour
     {
         if (targetText == null || _slider == null) return;
 
+        Debug.Log($"{_slider.wholeNumbers} {_slider.value:F0}");
         targetText.text = _slider.wholeNumbers ? $"{_slider.value:F0}" : $"{_slider.value:F2}";
     }
 }

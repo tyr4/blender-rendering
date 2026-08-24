@@ -2,8 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using SimpleFileBrowser;
+using Unity.VisualScripting.Dependencies.NCalc;
 
 public class PythonController : MonoBehaviour
 {
@@ -11,30 +13,36 @@ public class PythonController : MonoBehaviour
     private PythonProcessManager _processManager;
         
     private SettingsManager _settingsManager;
-    public UserSettings settings { get; private set; }
+    public UserSettings settings { get; set; }
     private string _settingsPath;
 
     public static event Action OnSceneLoaded;
     public static event Action OnFbxLoaded;
+    public static event Action<List<string>> OnArmatureLoaded;
+    public static event Action OnSettingsChanged;
 
     private void Awake()
     {
         Instance = this;
+        
+        _settingsManager = new SettingsManager();
+        settings = _settingsManager.settings;
     }
     
     private void Start()
     {
         _processManager = new PythonProcessManager();
-        _settingsManager = new SettingsManager();
-        settings = _settingsManager.settings;
 
         _processManager.Initialize();
         _processManager.OnLineReceived += OnLineReceived;
+
+        SliderUpdateManager.OnSettingsChangedRequest += ApplySceneSettings;
     }
 
     private void OnDestroy()
     {
         _processManager.OnLineReceived -= OnLineReceived;
+        SliderUpdateManager.OnSettingsChangedRequest -= ApplySceneSettings;
     }
 
     private void OnLineReceived(string line)
@@ -56,6 +64,7 @@ public class PythonController : MonoBehaviour
         try
         {
             string response = await _processManager.SendCommandAsync(settings);
+            
             return response;
         }
         catch (Exception e)
@@ -100,10 +109,30 @@ public class PythonController : MonoBehaviour
         PickSceneHandler();
     }
 
-    private void PickSceneHandler()
+    private async void PickSceneHandler()
     {
-        SendCommand("load_scene");
-        OnSceneLoaded?.Invoke();
+        try
+        {
+            string response = await SendCommandAsync("load_scene");
+            var status = Utils.GetJsonStatusResponse(response);
+
+            if (status == "error")
+            {
+                Debug.LogError("n am putut da load la scena");
+                return;
+            }
+            
+            OnSceneLoaded?.Invoke();
+
+            var animations = await GetFbxAnimations();
+            if (animations.Count == 0) return;
+        
+            OnArmatureLoaded?.Invoke(animations);
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError(e);
+        }
     }
 
     public void PickFbxButtonWrapper()
@@ -143,8 +172,8 @@ public class PythonController : MonoBehaviour
                 return;
             }
             
-            string armatureResponse = await SendCommandAsync("get_fbx_armatures");
-            Debug.Log(armatureResponse);
+            var animations = await GetFbxAnimations();
+            if (animations.Count != 0) OnArmatureLoaded?.Invoke(animations);
             
             OnFbxLoaded?.Invoke();
         }
@@ -199,7 +228,7 @@ public class PythonController : MonoBehaviour
         PickFbxHandler();
     }
 
-    public async Task<List<string>> GetFbxArmatures()
+    public async Task<List<string>> GetFbxAnimations()
     {
         try
         {
@@ -210,7 +239,7 @@ public class PythonController : MonoBehaviour
             if (message == null) return null;
         
             var animations = message["animations"]!.ToObject<List<string>>();
-            
+            Debug.Log(animations + " count " + animations.Count);
             return animations;
         }
         
@@ -218,6 +247,24 @@ public class PythonController : MonoBehaviour
         {
             Debug.LogError(e);
             return null;
+        }
+    }
+
+    private async void ApplySceneSettings()
+    {
+        try
+        {
+            string response = await SendCommandAsync("apply_settings");
+            var status = Utils.GetJsonStatusResponse(response);
+            
+            if (status == "error") return;
+            OnSettingsChanged?.Invoke();
+        }
+
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+            return;
         }
     }
 }

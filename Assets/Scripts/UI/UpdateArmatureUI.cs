@@ -15,24 +15,21 @@ public class UpdateArmatureUI : MonoBehaviour
     {
         _controller = PythonController.Instance;
         helperText.SetActive(true);
-        
-        PythonController.OnFbxLoaded += UpdateTextModelLoaded;
+
+        PythonController.OnArmatureLoaded += UpdateTextArmatureLoaded;
         PythonController.OnSceneLoaded += UpdateTextOnlySceneLoaded;
     }
 
     private void OnDestroy()
     {
-        PythonController.OnFbxLoaded -= UpdateTextModelLoaded;
+        PythonController.OnArmatureLoaded -= UpdateTextArmatureLoaded;
         PythonController.OnSceneLoaded -= UpdateTextOnlySceneLoaded;
-        
     }
 
-    private async void UpdateTextModelLoaded()
+    private void UpdateTextArmatureLoaded(List<string> animations)
     {
         helperText.SetActive(false);
-
-        var animations = await _controller.GetFbxArmatures();
-
+        
         for (int i = 0; i < animations.Count; i++)
         {
             var anim = animations[i];

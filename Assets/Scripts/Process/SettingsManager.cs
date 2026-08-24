@@ -36,6 +36,7 @@ public class SettingsManager
                 spritesheet_output_path = "D:\\Blender Stuff\\Output\\robot_test\\",
                 camera_orthographic_scale = 5.7f,
                 directions = 4,
+                resolution_x = 98,
                 resolution_y = 98
             };
 

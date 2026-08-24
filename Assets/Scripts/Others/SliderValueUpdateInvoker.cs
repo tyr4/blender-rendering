@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks.Sources;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
@@ -17,20 +18,32 @@ public class SliderValueUpdateInvoker : MonoBehaviour
     private float _lastValue;
     private bool _pending;
     
-    private event Action<object> OnSliderSettled;
+    public event Action<object> OnSliderSettled;
     
     private void Start()
     {
-        inputField.onEndEdit.AddListener (OnInputFieldValueChangedEnd);
+        inputField.onEndEdit.AddListener(OnInputFieldValueChangedEnd);
         slider.onValueChanged.AddListener(OnSliderValueChanged);
         toggle?.onValueChanged.AddListener(OnToggleValueChanged);
+    }
+
+    private void OnDestroy()
+    {
+        inputField.onEndEdit.RemoveListener(OnInputFieldValueChangedEnd);
+        slider.onValueChanged.RemoveListener(OnSliderValueChanged);
+        toggle?.onValueChanged.RemoveListener(OnToggleValueChanged);
     }
 
     private void OnInputFieldValueChangedEnd(string text)
     {
         var value = slider.wholeNumbers ? int.Parse(text) : float.Parse(text);
+
+        if (Mathf.Approximately(_lastValue, value)) return;
         
+        _lastValue = value;
         OnSliderSettled?.Invoke(value);
+        
+        Debug.Log($"AM INVOCAT {value}");
     }
 
     private void OnSliderValueChanged(float value)
@@ -55,5 +68,14 @@ public class SliderValueUpdateInvoker : MonoBehaviour
     private void OnToggleValueChanged(bool value)
     {
         IsEnabled = value;
+    }
+
+    public void ChangeSliderValue(float value)
+    {
+        slider.value = value;
+        // if (inputField == null || slider == null) return;
+        //
+        // Debug.Log($"{slider.wholeNumbers} {slider.value:F0}");
+        // inputField.text = slider.wholeNumbers ? $"{slider.value:F0}" : $"{slider.value:F2}";
     }
 }

@@ -185,7 +185,7 @@ def render_single_frame(settings: dict,
     add_borders(scene.render.filepath + ".png", scene.render.filepath + "_border.png")
 
     print(f"Rendered frame")
-    return filepath + ".png"
+    return filepath + "_border.png"
 
 def add_borders(image_path: str, output_path: str, border_size: int = 2, border_color: tuple = (255, 0, 0, 255)):
     img = Image.open(image_path)

@@ -9,56 +9,54 @@ public class RenderModelUI : MonoBehaviour
     [SerializeField] private Image modelImage;
     [SerializeField] private GameObject helperText;
     
-    private PythonController _controller;
     
     // TODO: add onsceneloaded event as well + helper text enable/disable for scene load
     private void Start()
     {
-        _controller = PythonController.Instance;
         helperText.SetActive(true);
 
-        PythonController.OnSceneLoaded += RenderModelOnLoad;
-        PythonController.OnFbxLoaded += RenderModelOnLoad;
+        modelImage.preserveAspect = true;
+        modelImage.color = new Color(1, 1, 1, 0);
+        
+        RenderModelManager.OnModelRender += OnModelRender;
     }
 
     private void OnDestroy()
     {
-        PythonController.OnSceneLoaded -= RenderModelOnLoad;
-        PythonController.OnFbxLoaded -= RenderModelOnLoad;
+        RenderModelManager.OnModelRender -= OnModelRender;
     }
 
-    private async void RenderModelOnLoad()
+    private void OnModelRender(string filepath)
     {
-        try
-        {
-            helperText.SetActive(false);
-        
-            try
-            {
-                var response = await _controller.SendCommandAsync("render_single_frame");
-                var filepath = Utils.GetJsonMessageResponse(response)!.ToObject<string>();
-                UpdateModelSnapshot(filepath);
-            }
-        
-            catch (Exception e)
-            {
-                Debug.LogError(e);
-            }
-        }
-        
-        catch (Exception e)
-        {
-            Debug.LogError(e);
-        }
+        helperText.SetActive(false);
+        UpdateModelSnapshot(filepath);
     }
+
     
-    private void UpdateModelSnapshot(string filepath)
+private void UpdateModelSnapshot(string filepath)
+{
+    Debug.Log(
+        $"UpdateModelSnapshot on {gameObject.name} " +
+        $"({GetInstanceID()}), modelImage = {modelImage}"
+    );
+
+    var sprite = LoadSpriteFromFile(filepath);
+    if (sprite == null) return;
+
+    if (modelImage == null)
     {
-        var sprite = LoadSpriteFromFile(filepath);
-        if (sprite == null) return;
-        
-        modelImage.sprite = sprite;
+        Debug.LogError(
+            $"modelImage is NULL! " +
+            $"RenderModelUI={GetInstanceID()}, " +
+            $"GameObject={gameObject.name}, " +
+            $"Scene={gameObject.scene.name}"
+        );
+        return;
     }
+
+    modelImage.sprite = sprite;
+    modelImage.color = new Color(1, 1, 1, 1);
+}
 
     private Sprite LoadSpriteFromFile(string filepath)
     {
@@ -69,7 +67,10 @@ public class RenderModelUI : MonoBehaviour
         }
 
         byte[] fileData = File.ReadAllBytes(filepath);
-        Texture2D texture = new Texture2D(2, 2); // filler extensions, replaced once the image loads
+        Texture2D texture = new Texture2D(2, 2) // filler parameters, replaced once the image loads
+        {
+            filterMode = FilterMode.Point
+        };
 
         if (!texture.LoadImage(fileData))
         {

@@ -9,7 +9,7 @@ public class InputFieldValidation : MonoBehaviour
     private TMP_InputField _inputField;
     
     private readonly string _patternFloat = @"^-?[0-9]*\.?[0-9]*$";
-    private readonly string _patternInt = @"^(?!-*[0-9]*$).*";
+    private readonly string _patternInt = @"^-?[0-9]*$";
 
     private string _selectedPattern = @"^-?[0-9]*\.?[0-9]*$";
     private string _lastValidText;
@@ -48,7 +48,7 @@ public class InputFieldValidation : MonoBehaviour
     
     private void OnValueChanged(string text)
     {
-        Debug.Log($"Current {text} last valid {_lastValidText}");
+        Debug.Log($"Current {text} last valid {_lastValidText} pattern {_selectedPattern}");
         
         if (Regex.IsMatch(text, _selectedPattern))
         {
