@@ -2,10 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using UnityEngine;
 using SimpleFileBrowser;
-using Unity.VisualScripting.Dependencies.NCalc;
 
 public class PythonController : MonoBehaviour
 {
@@ -16,10 +14,19 @@ public class PythonController : MonoBehaviour
     public UserSettings settings { get; set; }
     private string _settingsPath;
 
+    
+    public static event Action OnActionBegin;
+    public static event Action OnActionFinish;
+    
     public static event Action OnSceneLoaded;
+    public static event Action OnSceneLoadedNoFbx;
+    
     public static event Action OnFbxLoaded;
+    
     public static event Action<List<string>> OnArmatureLoaded;
     public static event Action OnSettingsChanged;
+    public static event Action OnRenderRequested;
+    
 
     private void Awake()
     {
@@ -105,14 +112,17 @@ public class PythonController : MonoBehaviour
 
         Debug.Log(FileBrowser.Result[0]);
         settings.scene_path = FileBrowser.Result[0];
+        settings.fbx_path = "";
         
-        PickSceneHandler();
+        LoadScene();
     }
 
-    private async void PickSceneHandler()
+    private async void LoadScene()
     {
         try
         {
+            OnActionBegin?.Invoke();
+            
             string response = await SendCommandAsync("load_scene");
             var status = Utils.GetJsonStatusResponse(response);
 
@@ -128,10 +138,12 @@ public class PythonController : MonoBehaviour
             if (animations.Count == 0) return;
         
             OnArmatureLoaded?.Invoke(animations);
+            OnSceneLoadedNoFbx?.Invoke();
+            OnActionFinish?.Invoke();
         }
         catch (Exception e)
         {
-            UnityEngine.Debug.LogError(e);
+            Debug.LogError(e);
         }
     }
 
@@ -157,18 +169,20 @@ public class PythonController : MonoBehaviour
         Debug.Log(FileBrowser.Result[0]);
         settings.fbx_path = FileBrowser.Result[0];
         
-        PickFbxHandler();
+        LoadFbx();
     }
 
-    private async void PickFbxHandler()
+    private async void LoadFbx()
     {
         try
         {
+            OnActionBegin?.Invoke();
+
             string fbxResponse = await SendCommandAsync("load_fbx");
             string fbxStatus = Utils.GetJsonStatusResponse(fbxResponse);
             if (fbxStatus == "error")
             {
-                Debug.LogError("n ai scena fraiere");
+                Debug.LogError("error loading fbx");
                 return;
             }
             
@@ -176,6 +190,30 @@ public class PythonController : MonoBehaviour
             if (animations.Count != 0) OnArmatureLoaded?.Invoke(animations);
             
             OnFbxLoaded?.Invoke();
+            OnActionFinish?.Invoke();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+    }
+
+    private async void ReloadFbx()
+    {
+        try
+        {
+            OnActionBegin?.Invoke();
+
+            string response = await SendCommandAsync("delete_armature");
+            string status = Utils.GetJsonStatusResponse(response);
+            
+            if (status == "error")
+            {
+                Debug.LogError("n a mers delete armature");
+                return;
+            }
+            
+            LoadFbx();
         }
         catch (Exception e)
         {
@@ -224,14 +262,37 @@ public class PythonController : MonoBehaviour
             yield break;
         }
         
-        PickSceneHandler();
-        PickFbxHandler();
+        LoadScene();
+        LoadFbx();
     }
 
+    public void ReloadSceneButton()
+    {
+        LoadScene();
+    }
+
+    public void ReloadFbxButton()
+    {
+        ReloadFbx();
+    }
+
+    public void ReloadSceneFbxButton()
+    {
+        LoadScene();
+        LoadFbx();
+    }
+
+    public void CenterArmatureButton()
+    {
+        CenterArmatureToCamera();
+    }
+    
     public async Task<List<string>> GetFbxAnimations()
     {
         try
         {
+            OnActionBegin?.Invoke();
+
             string response = await SendCommandAsync("get_fbx_armatures");
             if (string.IsNullOrEmpty(response)) return null;
             
@@ -240,6 +301,9 @@ public class PythonController : MonoBehaviour
         
             var animations = message["animations"]!.ToObject<List<string>>();
             Debug.Log(animations + " count " + animations.Count);
+            
+            OnActionFinish?.Invoke();
+            
             return animations;
         }
         
@@ -254,11 +318,37 @@ public class PythonController : MonoBehaviour
     {
         try
         {
+            OnActionBegin?.Invoke();
+
             string response = await SendCommandAsync("apply_settings");
             var status = Utils.GetJsonStatusResponse(response);
             
             if (status == "error") return;
+            
             OnSettingsChanged?.Invoke();
+            OnActionFinish?.Invoke();
+        }
+
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+            return;
+        }
+    }
+
+    private async void CenterArmatureToCamera()
+    {
+        try
+        {
+            OnActionBegin?.Invoke();
+            
+            string response = await SendCommandAsync("center_to_camera");
+            var status = Utils.GetJsonStatusResponse(response);
+            
+            if (status == "error") Debug.LogError("eroare");
+            
+            OnRenderRequested?.Invoke();
+            OnActionFinish?.Invoke();
         }
 
         catch (Exception e)

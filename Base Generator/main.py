@@ -48,7 +48,22 @@ def load_scene(scene_path: str):
     global has_loaded_scene
     has_loaded_scene = True
     
-    return bpy.ops.wm.open_mainfile(filepath=scene_path)
+    bpy.ops.wm.open_mainfile(filepath=scene_path)
+    debug_scene()
+
+def debug_scene():
+    debug_log("========== SCENE STATE ==========")
+    debug_log(f"File: {bpy.data.filepath}")
+    debug_log(f"Scene: {bpy.context.scene.name}")
+
+    for obj in bpy.data.objects:
+        debug_log(
+            f"{obj.name} | "
+            f"location={tuple(obj.location)} | "
+            f"rotation={tuple(obj.rotation_euler)} | "
+            f"scale={tuple(obj.scale)} | "
+            f"parent={obj.parent.name if obj.parent else None}"
+        )
 
 def load_fbx_model(scene_path: str):
     # has_loaded_fbx = True
@@ -58,12 +73,32 @@ def load_fbx_model(scene_path: str):
     result = bpy.ops.import_scene.fbx('EXEC_DEFAULT', filepath=scene_path)
     debug_log(f"am {result}")
     
+    parent_obj = get_reposition_object()
+    armature = get_armature_object()
+    armature.parent = parent_obj
+    
     return result
 
 def get_armature_object():
     armatures = [obj for obj in bpy.data.objects if obj.type == 'ARMATURE']
 
     return armatures[0]
+
+def delete_armature_object():
+    reposition = get_reposition_object()
+
+    def collect_descendants(obj):
+        descendants = []
+        for child in obj.children:
+            descendants.append(child)
+            descendants.extend(collect_descendants(child))
+        return descendants
+
+    to_delete = collect_descendants(reposition)
+
+    for obj in to_delete:
+        debug_log(f"deleting: {obj.name}")
+        bpy.data.objects.remove(obj, do_unlink=True)
 
 def get_camera():
     return bpy.data.objects["Camera"]
@@ -75,14 +110,36 @@ def get_main_parent_object():
     return bpy.data.objects["Parent Object"]
 
 def change_object_rotation(obj, vector3_rotation: tuple):
+    debug_log(
+        f"{obj.name} | "
+        f"local_loc={tuple(obj.location)} | "
+        f"local_rot={tuple(obj.rotation_euler)} | "
+        f"world_loc={tuple(obj.matrix_world.translation)} | "
+        f"world_matrix={tuple(obj.matrix_world)}"
+    )
+    
     rotation_x, rotation_y, rotation_z = vector3_rotation
+
+    print("before obj rotation:", obj, obj.rotation_euler.x, obj.rotation_euler.y, obj.rotation_euler.z, vector3_rotation)
 
     obj.rotation_euler.x = math.radians(rotation_x)
     obj.rotation_euler.y = math.radians(rotation_y)
     obj.rotation_euler.z = math.radians(rotation_z)
+    
+    print("after obj rotation: ", obj, obj.rotation_euler.x, obj.rotation_euler.y, obj.rotation_euler.z, vector3_rotation)
 
 def change_object_position(obj, vector3_position: tuple):
+    debug_log(
+        f"{obj.name} | "
+        f"local_loc={tuple(obj.location)} | "
+        f"local_rot={tuple(obj.rotation_euler)} | "
+        f"world_loc={tuple(obj.matrix_world.translation)} | "
+        f"world_matrix={tuple(obj.matrix_world)}"
+    )
+    
+    print("before obj location: ", obj, obj.location, vector3_position)
     obj.location = vector3_position
+    print("after obj location: ", obj, obj.location, vector3_position)
 
 def change_camera_orthographic_size(size: float):
     camera = get_camera()
@@ -179,7 +236,7 @@ def render_single_frame(settings: dict,
     filepath = settings["render_temp_output_path"] + settings["render_temp_output_name"] + "static"
     scene.render.filepath = filepath
 
-    apply_settings_to_scene(settings)
+    # apply_settings_to_scene(settings)
 
     bpy.ops.render.render(use_viewport=True, write_still=True, animation=False)
     add_borders(scene.render.filepath + ".png", scene.render.filepath + "_border.png")
@@ -200,6 +257,90 @@ def add_borders(image_path: str, output_path: str, border_size: int = 2, border_
     )
 
     img.save(output_path)
+
+def mat4_mul_point(matrix_world, point):
+    """
+    matrix_world: Blender's matrix_world (still a bpy/mathutils object,
+                   but we only ever READ from it via indexing - no
+                   Vector/Matrix construction required)
+    point: (x, y, z) tuple
+    """
+    x, y, z = point
+    row0 = matrix_world[0]
+    row1 = matrix_world[1]
+    row2 = matrix_world[2]
+
+    out_x = row0[0]*x + row0[1]*y + row0[2]*z + row0[3]
+    out_y = row1[0]*x + row1[1]*y + row1[2]*z + row1[3]
+    out_z = row2[0]*x + row2[1]*y + row2[2]*z + row2[3]
+
+    return (out_x, out_y, out_z)
+
+
+def mat4_mul_direction(matrix_world, direction):
+    """Same as above but ignores translation - for rotating a direction vector."""
+    x, y, z = direction
+    row0 = matrix_world[0]
+    row1 = matrix_world[1]
+    row2 = matrix_world[2]
+
+    out_x = row0[0]*x + row0[1]*y + row0[2]*z
+    out_y = row1[0]*x + row1[1]*y + row1[2]*z
+    out_z = row2[0]*x + row2[1]*y + row2[2]*z
+
+    return (out_x, out_y, out_z)
+
+
+def mat4_invert(matrix_world):
+    return matrix_world.inverted()
+
+
+def get_world_bounds_center(root_obj):
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    corners = []
+
+    def collect(obj):
+        eval_obj = obj.evaluated_get(depsgraph)
+        if eval_obj.type == 'MESH' and eval_obj.data:
+            for c in eval_obj.bound_box:
+                corners.append(mat4_mul_point(eval_obj.matrix_world, tuple(c)))
+        for child in obj.children:
+            collect(child)
+
+    collect(root_obj)
+
+    if not corners:
+        t = root_obj.matrix_world.translation
+        return (t[0], t[1], t[2])
+
+    xs = [c[0] for c in corners]
+    ys = [c[1] for c in corners]
+    zs = [c[2] for c in corners]
+
+    return (
+        (min(xs) + max(xs)) / 2,
+        (min(ys) + max(ys)) / 2,
+        (min(zs) + max(zs)) / 2,
+    )
+
+
+def center_object_to_camera(root_obj, camera, move_obj):
+    bounds_center = get_world_bounds_center(root_obj)
+
+    cam_inv = mat4_invert(camera.matrix_world)
+    cx, cy, cz = mat4_mul_point(cam_inv, bounds_center)
+
+    offset_cam_space = (-cx, -cy, 0.0)
+    ox, oy, oz = mat4_mul_direction(camera.matrix_world, offset_cam_space)
+
+    world_pos = move_obj.matrix_world.translation
+    move_obj.matrix_world.translation = (
+        world_pos[0] + ox,
+        world_pos[1] + oy,
+        world_pos[2] + oz,
+    )
+
+    bpy.context.view_layer.update()
 
 def run_calculator(settings):
     # init_scene(settings)
@@ -257,6 +398,7 @@ def apply_settings_to_scene(settings: dict):
     reposition_position = settings["reposition_object_position"]
     reposition_rotation = settings["reposition_object_rotation"]
 
+    print("parent obj", reposition_position, reposition_rotation)
     if reposition_position:
         change_object_position(reposition_obj, reposition_position)
     if reposition_rotation:
@@ -266,6 +408,7 @@ def apply_settings_to_scene(settings: dict):
     parent_position = settings["parent_object_position"]
     parent_rotation = settings["parent_object_rotation"]
 
+    print("parent obj", parent_position, parent_rotation)
     if parent_position:
         change_object_position(parent_obj, parent_position)
     if parent_rotation:
@@ -275,6 +418,8 @@ def apply_settings_to_scene(settings: dict):
     scene.render.resolution_x = settings["resolution_x"]
     scene.render.resolution_y = settings["resolution_y"]
     scene.render.resolution_percentage = 100
+
+    bpy.context.view_layer.update()
 
 def shutdown():
     print("am intrat in shutdown")
@@ -321,6 +466,9 @@ def handle_command(settings: dict):
                 debug_log("allegedly am dat load la fbx")
             else:
                 return send_response({"status": "error", "message": f"scene has not been loaded"}, settings)
+            
+        elif cmd == "delete_armature":
+            delete_armature_object()
 
         # global scene commands
         elif cmd == "apply_settings":
@@ -329,6 +477,12 @@ def handle_command(settings: dict):
         elif cmd == "render_single_frame":
             filepath = render_single_frame(settings)
             return send_response({"status": "success", "message": filepath}, settings)
+        
+        elif cmd == "center_to_camera":
+            armature = get_armature_object()
+            camera = get_camera()
+            reposition_obj = get_reposition_object()
+            center_object_to_camera(armature, camera, reposition_obj)
 
         elif cmd == "shutdown":
             shutdown()
@@ -365,22 +519,26 @@ spritesheet_output_name = "spritesheet"
 
 data = bpy.data
 objects = list(data.objects)
-# settings_dict = {"current_command": "",
-#                  "scene_path": "/home/mihai/Blender Stuff/Scenes/spider_test.blend", # required
-#                  "fbx_path": "",
-#                  "render_temp_output_path": "/home/mihai/Blender Stuff/Output/spider_test/", # required
-#                  "render_temp_output_name": "anim_", # required
-#                  "spritesheet_output_path": "/home/mihai/Blender Stuff/Output/spider_test/", # required
-#                  "directions": 4, # required
-#                  "resolution_x": 128,
-#                  "resolution_y": 128,
-#                  "camera_orthographic_scale": None, # float
-#                  "camera_shift_y": None, # float
-#                  "camera_position": None, # Vector
-#                  "starting_rotation": Vector((0, 0, 0)), # Vector
-#                  "reposition_object_position": None, # Vector
-#                  "reposition_object_rotation": None # Vector
-#                  }
+settings_dict = {"current_command": "",
+                 "scene_path": "D:\\Blender Stuff\\Scenes\\empty_scene.blend", # required
+                 "fbx_path": "D:\\Blender Stuff\\Models\\robot\\episode_71.fbx",
+                 "render_temp_output_path": "D:\\Blender Stuff\\Output\\robot_test\\", # required
+                 "render_temp_output_name": "anim_", # required
+                 "spritesheet_output_path": "D:\\Blender Stuff\\Output\\robot_test\\", # required
+                 "directions": 4, # required
+                 "resolution_x": 98,
+                 "resolution_y": 98,
+                 "camera_orthographic_scale": 5.7, # float
+                 "camera_shift_y": None, # float
+                 "camera_position": None, # Vector
+                 "starting_rotation": (0, 0, 0), # Vector
+                 "reposition_object_position": None, # Vector
+                 "reposition_object_rotation": None, # Vector
+                 "parent_object_position": (1, 0, 0),
+                 "parent_object_rotation": None
+                 }
 
 if __name__ == "__main__":
     main()
+    # init_scene(settings_dict, load_fbx=True)
+    # render_single_frame(settings_dict)

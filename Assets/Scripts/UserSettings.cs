@@ -15,6 +15,7 @@ public class UserSettings
     public int resolution_x { get; set; } = 128;
     public int resolution_y { get; set; } = 128;
     public float? camera_orthographic_scale { get; set; } = 8f;
+    public float? camera_shift_x { get; set; }
     public float? camera_shift_y { get; set; }
     public float[]? camera_position { get; set; }
     public float[] starting_rotation { get; set; } = { 0, 0, 0 };

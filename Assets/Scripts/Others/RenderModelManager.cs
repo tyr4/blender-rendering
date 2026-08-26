@@ -13,14 +13,18 @@ public class RenderModelManager : MonoBehaviour
         
         PythonController.OnSceneLoaded += RenderModel;
         PythonController.OnFbxLoaded += RenderModel;
+        
         PythonController.OnSettingsChanged += RenderModel;
+        PythonController.OnRenderRequested += RenderModel;
     }
 
     private void OnDestroy()
     {
         PythonController.OnSceneLoaded -= RenderModel;
         PythonController.OnFbxLoaded -= RenderModel;
+        
         PythonController.OnSettingsChanged -= RenderModel;
+        PythonController.OnRenderRequested -= RenderModel;
     }
     
     private async void RenderModel()
