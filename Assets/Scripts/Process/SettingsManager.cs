@@ -34,10 +34,6 @@ public class SettingsManager
                 render_temp_output_path = "D:\\Blender Stuff\\Output\\robot_test\\",
                 render_temp_output_name = "anim_",
                 spritesheet_output_path = "D:\\Blender Stuff\\Output\\robot_test\\",
-                camera_orthographic_scale = 5.7f,
-                directions = 4,
-                resolution_x = 98,
-                resolution_y = 98
             };
 
             return settings;

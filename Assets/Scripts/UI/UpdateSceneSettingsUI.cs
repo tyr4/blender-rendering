@@ -8,7 +8,7 @@ public class UpdateSceneSettingsUI : MonoBehaviour
 
     private List<GameObject> _settingObjects = new();
 
-    public static event Action OnSceneObjectsLoaded;
+    public static event Action OnSceneUILoaded;
 
     private void Start()
     {
@@ -37,6 +37,6 @@ public class UpdateSceneSettingsUI : MonoBehaviour
             obj.SetActive(true);
         }
         
-        OnSceneObjectsLoaded?.Invoke();
+        OnSceneUILoaded?.Invoke();
     }
 }

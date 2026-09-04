@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 public class SliderUpdateManager : MonoBehaviour
@@ -6,14 +8,13 @@ public class SliderUpdateManager : MonoBehaviour
     [SerializeField] private SliderValueUpdateInvoker resolutionX;
     [SerializeField] private SliderValueUpdateInvoker resolutionY;
     
-    // [SerializeField] private SliderValueUpdateInvoker cameraShiftX;
-    // [SerializeField] private SliderValueUpdateInvoker cameraShiftY;
     [SerializeField] private SliderValueUpdateInvoker cameraOrthographicScale;
-    
     [SerializeField] private SliderPairValueUpdateInvoker cameraPosition;
     [SerializeField] private SliderPairValueUpdateInvoker startingRotation;
+    
     [SerializeField] private SliderPairValueUpdateInvoker parentObjectPosition;
     [SerializeField] private SliderPairValueUpdateInvoker parentObjectRotation;
+    
     [SerializeField] private SliderPairValueUpdateInvoker repositionObjectPosition;
     [SerializeField] private SliderPairValueUpdateInvoker repositionObjectRotation;
     
@@ -23,7 +24,8 @@ public class SliderUpdateManager : MonoBehaviour
     
     private void Start()
     {
-        UpdateSceneSettingsUI.OnSceneObjectsLoaded += OnSceneLoaded;
+        // subscribe to events
+        PythonController.OnObjectDataRequested += OnObjectDataRequested;
 
         resolutionX.OnSliderSettled += ApplyResolutionX;
         resolutionY.OnSliderSettled += ApplyResolutionY;
@@ -39,11 +41,30 @@ public class SliderUpdateManager : MonoBehaviour
         
         repositionObjectPosition.OnSliderPairSettled += ApplyRepositionObjectPosition;
         repositionObjectRotation.OnSliderPairSettled += ApplyRepositionObjectRotation;
+        
+        // set correct UserSettings value to each pair slider
+        cameraPosition.Bind(() => PythonController.Instance.settings.camera_position,
+                            v => PythonController.Instance.settings.camera_position = v);
+        
+        startingRotation.Bind(() => PythonController.Instance.settings.starting_rotation,
+            v => PythonController.Instance.settings.starting_rotation = v);
+        
+        parentObjectPosition.Bind(() => PythonController.Instance.settings.parent_object_position,
+            v => PythonController.Instance.settings.parent_object_position = v);
+        
+        parentObjectRotation.Bind(() => PythonController.Instance.settings.parent_object_rotation,
+            v => PythonController.Instance.settings.parent_object_rotation = v);
+        
+        repositionObjectPosition.Bind(() => PythonController.Instance.settings.reposition_object_position,
+            v => PythonController.Instance.settings.reposition_object_position = v);
+        
+        repositionObjectRotation.Bind(() => PythonController.Instance.settings.reposition_object_rotation,
+            v => PythonController.Instance.settings.reposition_object_rotation = v);
     }
 
     private void OnDestroy()
     {
-        UpdateSceneSettingsUI.OnSceneObjectsLoaded -= OnSceneLoaded;
+        PythonController.OnObjectDataRequested -= OnObjectDataRequested;
 
         resolutionX.OnSliderSettled -= ApplyResolutionX;
         resolutionY.OnSliderSettled -= ApplyResolutionY;
@@ -60,33 +81,42 @@ public class SliderUpdateManager : MonoBehaviour
         repositionObjectPosition.OnSliderPairSettled -= ApplyRepositionObjectPosition;
         repositionObjectRotation.OnSliderPairSettled -= ApplyRepositionObjectRotation;
     }
-
-    private void OnSettingsLoaded()
-    {
-        ApplyNonSceneRelatedSliderValues();
-    }
     
-    private void OnSceneLoaded()
+    private void OnObjectDataRequested(Dictionary<string, JToken> data)
     {
-        ApplyNonSceneRelatedSliderValues();
-        ApplySceneRelatedSceneSliderValues();
-    }
-
-    // this only modifies values that arent tied to scene objects
-    private void ApplyNonSceneRelatedSliderValues()
-    {
-        resolutionX.ChangeSliderValue(settings.resolution_x);
-        resolutionY.ChangeSliderValue(settings.resolution_y);
-    }
-
-    private void ApplySceneRelatedSceneSliderValues()
-    {
-        cameraOrthographicScale.ChangeSliderValue((float)settings.camera_orthographic_scale!);
+        ChangeFloatValue(cameraOrthographicScale, data["camera_orthographic_scale"]);
+        ChangeFloatValuePair(cameraPosition, data["camera_position"]);
         
-        // cameraPosition.ChangeSliderPairValues(settings.camera_position);
+        ChangeFloatValuePair(startingRotation, data["starting_rotation"]);
+        
+        ChangeFloatValuePair(parentObjectPosition, data["parent_object_position"]);
+        ChangeFloatValuePair(parentObjectRotation, data["parent_object_rotation"]);
+        
+        ChangeFloatValuePair(repositionObjectPosition, data["reposition_object_position"]);
+        ChangeFloatValuePair(repositionObjectRotation, data["reposition_object_rotation"]);
+        
+        
+        foreach (var (key, value) in data)
+        {
+            Debug.Log($"key {key} value {value}");
+        }
+    }
+
+    private void ChangeFloatValue(SliderValueUpdateInvoker slider, JToken value)
+    {
+        var result = value.ToObject<float>();
+        
+        slider.ChangeSliderValue(result);
+    }
+
+    private void ChangeFloatValuePair(SliderPairValueUpdateInvoker slider, JToken value)
+    {
+        var result = value.ToObject<float[]>();
+
+        Debug.Log(string.Join(", ", result));
+        slider.ChangeSliderPairValues(result);
     }
     
-
     #region OnSettingsChangedRequests 
     private void ApplyResolutionX(object value)
     {
@@ -98,20 +128,6 @@ public class SliderUpdateManager : MonoBehaviour
     private void ApplyResolutionY(object value)
     {
         settings.resolution_y = Convert.ToInt32(value);
-        
-        OnSettingsChangedRequest?.Invoke();
-    }
-    
-    private void ApplyCameraShiftX(object value)
-    {
-        settings.camera_shift_x = Convert.ToSingle(value);
-        
-        OnSettingsChangedRequest?.Invoke();
-    }
-    
-    private void ApplyCameraShiftY(object value)
-    {
-        settings.camera_shift_y = Convert.ToSingle(value);
         
         OnSettingsChangedRequest?.Invoke();
     }
@@ -163,6 +179,14 @@ public class SliderUpdateManager : MonoBehaviour
         settings.reposition_object_rotation = (float[])value;
         
         OnSettingsChangedRequest?.Invoke();
+    }
+    #endregion
+
+    #region  OnSettingsUpdated
+
+    private void ApplySettingsUpdated(UserSettings userSettings)
+    {
+        // cameraPosition.v
     }
     #endregion
 }

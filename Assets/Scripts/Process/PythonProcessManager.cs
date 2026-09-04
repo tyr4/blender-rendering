@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -16,9 +17,12 @@ public class PythonProcessManager
     private StreamReader _stdout;
 
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _pending = new();
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
     
-    public event Action<string> OnLineReceived;
+    public bool IsRunning => _process is { HasExited: false };
 
+    public event Action<string> OnLineReceived;
+    
     public void Initialize()
     {
         StartPythonProcess();
@@ -73,7 +77,6 @@ public class PythonProcessManager
         _process.BeginErrorReadLine();
     }
 
-    public bool IsRunning => _process is { HasExited: false };
 
     public void Kill()
     {
@@ -101,15 +104,16 @@ public class PythonProcessManager
 
     private string TryExtractRequestId(string line)
     {
+        const string marker = "RESPONSE_END_STDOUT";
+        if (!line.StartsWith(marker)) return null;
+
         try
         {
-            var message = (string)Utils.GetJsonValue(line, "request_id");
-
-            return message;
+            return (string)Utils.GetJsonValue(line, "request_id");
         }
         catch
         {
-            return null; // not json
+            return null;
         }
     }
 
@@ -131,14 +135,16 @@ public class PythonProcessManager
 
         string json = JsonConvert.SerializeObject(settings);
 
-        _ = Task.Run(() =>
+        _ = Task.Run( async () =>
         {
+            await _writeLock.WaitAsync();
+            
             try
             {
                 Debug.Log($"about to write {json}");
                 _stdin.WriteLine(json);
                 Debug.Log("wrote");
-                
+
                 _stdin.Flush();
                 Debug.Log("flushed");
             }
@@ -146,6 +152,11 @@ public class PythonProcessManager
             {
                 _pending.TryRemove(settings.request_id, out _);
                 tcs.TrySetException(e);
+            }
+
+            finally
+            {
+                _writeLock.Release();
             }
         });
         

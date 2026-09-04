@@ -72,10 +72,11 @@ public class SliderValueUpdateInvoker : MonoBehaviour
 
     public void ChangeSliderValue(float value)
     {
-        slider.value = value;
-        // if (inputField == null || slider == null) return;
-        //
-        // Debug.Log($"{slider.wholeNumbers} {slider.value:F0}");
-        // inputField.text = slider.wholeNumbers ? $"{slider.value:F0}" : $"{slider.value:F2}";
+        if (inputField == null || slider == null) return;
+        
+        slider.SetValueWithoutNotify(value);
+        Debug.Log($"changed value to {value}");
+        
+        inputField.text = slider.wholeNumbers ? $"{slider.value:F0}" : $"{slider.value:F2}";
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class SliderPairValueUpdateInvoker : MonoBehaviour
 {
@@ -8,49 +9,67 @@ public class SliderPairValueUpdateInvoker : MonoBehaviour
     [SerializeField] private SliderValueUpdateInvoker pairZ;
 
     public event Action<float[]> OnSliderPairSettled;
-    private float[] _vector;
+    private Action<object> _onX, _onY, _onZ;
+
+    private Func<float[]> _getter;
+    private Action<float[]> _setter;
+    
+    private bool _shouldInvoke = true;
 
     private void Start()
     {
-        _vector = new float[3];
+        _onX = v => UpdateComponent(0, v);
+        _onY = v => UpdateComponent(1, v);
+        _onZ = v => UpdateComponent(2, v);
         
-        pairX.OnSliderSettled += UpdateXValue;
-        pairY.OnSliderSettled += UpdateYValue;
-        pairZ.OnSliderSettled += UpdateZValue;
+        pairX.OnSliderSettled += _onX;
+        pairY.OnSliderSettled += _onY;
+        pairZ.OnSliderSettled += _onZ;
     }
 
     private void OnDestroy()
     {
-        pairX.OnSliderSettled -= UpdateXValue;
-        pairY.OnSliderSettled -= UpdateYValue;
-        pairZ.OnSliderSettled -= UpdateZValue;
-    }
-    
-
-    private void UpdateXValue(object value)
-    {
-        _vector[0] = Convert.ToSingle(value);
-
-        OnSliderPairSettled?.Invoke(_vector);
+        pairX.OnSliderSettled -= _onX;
+        pairY.OnSliderSettled -= _onY;
+        pairZ.OnSliderSettled -= _onZ;
     }
 
-    private void UpdateYValue(object value)
+    public void Bind(Func<float[]> getter, Action<float[]> setter)
     {
-        _vector[1] = Convert.ToSingle(value);
-
-        OnSliderPairSettled?.Invoke(_vector);
+        _getter = getter;
+        _setter = setter;
+        
+        RefreshFromSource();
     }
 
-    private void UpdateZValue(object value)
+    private void UpdateComponent(int index, object value)
     {
-        _vector[2] = Convert.ToSingle(value);
+        if (_getter == null) return;
+        
+        var currentValue = _getter();
+        currentValue[index] = Convert.ToSingle(value);
+        
+        _setter?.Invoke(currentValue);
+        if (_shouldInvoke) OnSliderPairSettled?.Invoke(currentValue);
+    }
 
-        OnSliderPairSettled?.Invoke(_vector);
+    private void RefreshFromSource()
+    {
+        if (_getter == null) return;
+        
+        ChangeSliderPairValues(_getter());
     }
 
     public void ChangeSliderPairValues(float[] vector)
     {
-        vector.CopyTo(_vector, 0);
+        if (vector == null) return;
+        
+        _shouldInvoke = false;
+        
+        pairX.ChangeSliderValue(vector[0]);
+        pairY.ChangeSliderValue(vector[1]);
+        pairZ.ChangeSliderValue(vector[2]);
+        
+        _shouldInvoke = true; 
     }
-    
 }

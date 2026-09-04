@@ -20,6 +20,9 @@ public class ButtonManager : MonoBehaviour
     // [SerializeField] private Button ;
 
     private Dictionary<Button, bool> _savedState = new();
+    private bool _hasBegunAction;
+
+    private bool _hasLoadedFbx = false;
     
     private void Start()
     {
@@ -27,7 +30,8 @@ public class ButtonManager : MonoBehaviour
         
         PythonController.OnSceneLoaded += OnLoadScene;
         PythonController.OnArmatureLoaded += OnLoadArmature;
-        PythonController.OnSceneLoadedNoFbx += OnLoadSceneNoFbx;
+        PythonController.OnFbxLoaded += OnLoadFbx;
+        // PythonController.OnSceneLoadedNoFbx += OnLoadSceneNoFbx;
         
         PythonController.OnActionBegin += OnActionBegin;
         PythonController.OnActionFinish += OnActionFinish;
@@ -37,7 +41,8 @@ public class ButtonManager : MonoBehaviour
     {
         PythonController.OnSceneLoaded -= OnLoadScene;
         PythonController.OnArmatureLoaded -= OnLoadArmature;
-        PythonController.OnSceneLoadedNoFbx -= OnLoadSceneNoFbx;
+        // PythonController.OnSceneLoadedNoFbx -= OnLoadSceneNoFbx;
+        PythonController.OnFbxLoaded -= OnLoadFbx;
 
         PythonController.OnActionBegin -= OnActionBegin;
         PythonController.OnActionFinish -= OnActionFinish;
@@ -107,6 +112,9 @@ public class ButtonManager : MonoBehaviour
 
     private void OnActionBegin()
     {
+        if (_hasBegunAction) return;
+        _hasBegunAction = true;
+        
         UpdateButtonState();
         ToggleAll(false);
     }
@@ -114,6 +122,7 @@ public class ButtonManager : MonoBehaviour
     private void OnActionFinish()
     {
         RestoreState();
+        _hasBegunAction = false;
     }
 
     private void Init()
@@ -129,8 +138,10 @@ public class ButtonManager : MonoBehaviour
     
     private void OnLoadScene()
     {
-        ToggleAll(false);
+        _hasLoadedFbx = false;
         
+        ToggleAll(false);
+
         loadSceneFbx.interactable = true;
         loadScene.interactable = true;
         loadFbx.interactable = true;
@@ -141,33 +152,40 @@ public class ButtonManager : MonoBehaviour
 
     private void OnLoadArmature(List<string> _)
     {
+        if (_hasLoadedFbx) return;
         OnLoadScene();
+        
+        exportSelectedAnims.interactable = true;
+        exportAllAnims.interactable = true;
+        centerArmature.interactable = true;
+        
+        Debug.Log(centerArmature.interactable + " " + " center armature");
+        UpdateButtonState();
+    }
 
+    private void OnLoadFbx()
+    {
+        _hasLoadedFbx = true;
         Debug.Log("AM INTRAT IN LOADFBX");
+        
         reloadFbx.interactable = true;
         reloadSceneFbx.interactable = true;
         centerArmature.interactable = true;
         exportSelectedAnims.interactable = true;
         exportAllAnims.interactable = true;
-
-        Debug.Log(centerArmature.interactable + " " + " center armature");
-        UpdateButtonState();
-    }
-
-    private void OnLoadSceneNoFbx()
-    {
-        reloadFbx.interactable = false;
-        reloadSceneFbx.interactable = false;
     }
     
     /* TODO:
-     - thread safe stdin/stdout
-     - reenable buttons in logerror (to not cause a softlock)
-     - (important) update sliders with scene values on load
-     - fix onloadscenenofbx
+     - X thread safe stdin/stdout
+     - X reenable buttons in logerror (to not cause a softlock)
+     - X (important) update sliders with scene values on load
      - make settings toggles work
      - settings edit section
      - console section (console manager with custom function to send output there)
-       -> color coded would be nice
+        -> color coded would be nice
+        -> able to send async commands directly
+     - make export animations work correctly (do settings section before this)
+     - after the spritesheet is generated, render 1 animation in the preview or all of them
+        - return as json animation data -> fps specifically for the animationclip
     */
 }
