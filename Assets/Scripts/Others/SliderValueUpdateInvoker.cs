@@ -22,6 +22,11 @@ public class SliderValueUpdateInvoker : MonoBehaviour
     
     private void Start()
     {
+        if (toggle == null)
+        {
+            toggle = GetComponentInParent<Toggle>();
+        }
+        
         inputField.onEndEdit.AddListener(OnInputFieldValueChangedEnd);
         slider.onValueChanged.AddListener(OnSliderValueChanged);
         toggle?.onValueChanged.AddListener(OnToggleValueChanged);

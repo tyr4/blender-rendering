@@ -15,6 +15,10 @@ public class PythonController : MonoBehaviour
         
     private SettingsManager _settingsManager;
     public UserSettings settings { get; set; }
+    
+    private UserSettings _snapshotSettings;
+    public SnapshotToggles snapshotToggles { get; set; } = new();
+    
     private string _settingsPath;
 
     private readonly SemaphoreSlim _commandLock = new(1, 1);
@@ -79,7 +83,9 @@ public class PythonController : MonoBehaviour
         try
         {
             settings.current_command = command;
-            return await _processManager.SendCommandAsync(settings);
+            var settingsWithSnapshotToggles = ApplySnapshotToggles();
+            
+            return await _processManager.SendCommandAsync(settingsWithSnapshotToggles);
         }
         catch (Exception e)
         {
@@ -354,7 +360,7 @@ public class PythonController : MonoBehaviour
         }
     }
 
-    private async void ApplySceneSettings()
+    public async void ApplySceneSettings()
     {
         try
         {
@@ -458,5 +464,32 @@ public class PythonController : MonoBehaviour
         
         settings.reposition_object_position = data["reposition_object_position"].ToObject<float[]>();
         settings.reposition_object_rotation = data["reposition_object_rotation"].ToObject<float[]>();
+
+        _snapshotSettings ??= new UserSettings(settings);
+    }
+
+    private UserSettings ApplySnapshotToggles()
+    {
+        var currentSettings = new UserSettings(settings);
+
+        if (snapshotToggles.camera_position) 
+            currentSettings.camera_position = _snapshotSettings.camera_position;
+
+        if (snapshotToggles.starting_rotation)
+            currentSettings.starting_rotation = _snapshotSettings.starting_rotation;
+        
+        if (snapshotToggles.parent_object_position)
+            currentSettings.parent_object_position = _snapshotSettings.parent_object_position;
+        
+        if (snapshotToggles.parent_object_rotation)
+            currentSettings.parent_object_rotation = _snapshotSettings.parent_object_rotation;
+
+        if (snapshotToggles.reposition_object_position)
+            currentSettings.reposition_object_position = _snapshotSettings.reposition_object_position;
+
+        if (snapshotToggles.reposition_object_rotation)
+            currentSettings.reposition_object_rotation = _snapshotSettings.reposition_object_rotation;
+        
+        return currentSettings;
     }
 }

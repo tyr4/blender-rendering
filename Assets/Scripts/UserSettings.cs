@@ -21,4 +21,29 @@ public class UserSettings
     public float[]? parent_object_rotation { get; set; } 
     public float[]? reposition_object_position { get; set; } 
     public float[]? reposition_object_rotation { get; set; }
+    
+    public UserSettings() { }
+
+    public UserSettings(UserSettings other)
+    {
+        request_id = other.request_id;
+        current_command = other.current_command;
+        python_interpreter = other.python_interpreter;
+        python_file_path = other.python_file_path;
+        scene_path = other.scene_path;
+        fbx_path = other.fbx_path;
+        render_temp_output_path = other.render_temp_output_path;
+        render_temp_output_name = other.render_temp_output_name;
+        spritesheet_output_path = other.spritesheet_output_path;
+        directions = other.directions;
+        resolution_x = other.resolution_x;
+        resolution_y = other.resolution_y;
+        camera_orthographic_scale = other.camera_orthographic_scale;
+        camera_position = (float[]?)other.camera_position?.Clone();
+        starting_rotation = (float[]?)other.starting_rotation?.Clone();
+        parent_object_position = (float[]?)other.parent_object_position?.Clone();
+        parent_object_rotation = (float[]?)other.parent_object_rotation?.Clone();
+        reposition_object_position = (float[]?)other.reposition_object_position?.Clone();
+        reposition_object_rotation = (float[]?)other.reposition_object_rotation?.Clone();
+    }
 }

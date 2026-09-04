@@ -42,24 +42,31 @@ public class SliderUpdateManager : MonoBehaviour
         repositionObjectPosition.OnSliderPairSettled += ApplyRepositionObjectPosition;
         repositionObjectRotation.OnSliderPairSettled += ApplyRepositionObjectRotation;
         
-        // set correct UserSettings value to each pair slider
-        cameraPosition.Bind(() => PythonController.Instance.settings.camera_position,
+        // set correct UserSettings value to each pair slider and SnapshotToggles correct toggles
+        cameraPosition.BindOnSettingsChanged(() => PythonController.Instance.settings.camera_position,
                             v => PythonController.Instance.settings.camera_position = v);
+        cameraPosition.BindOnToggleValueChanged(v => PythonController.Instance.snapshotToggles.camera_position = v);
         
-        startingRotation.Bind(() => PythonController.Instance.settings.starting_rotation,
+        startingRotation.BindOnSettingsChanged(() => PythonController.Instance.settings.starting_rotation,
             v => PythonController.Instance.settings.starting_rotation = v);
+        startingRotation.BindOnToggleValueChanged(v => PythonController.Instance.snapshotToggles.starting_rotation = v);
         
-        parentObjectPosition.Bind(() => PythonController.Instance.settings.parent_object_position,
+        
+        parentObjectPosition.BindOnSettingsChanged(() => PythonController.Instance.settings.parent_object_position,
             v => PythonController.Instance.settings.parent_object_position = v);
+        parentObjectPosition.BindOnToggleValueChanged(v => PythonController.Instance.snapshotToggles.parent_object_position = v);
         
-        parentObjectRotation.Bind(() => PythonController.Instance.settings.parent_object_rotation,
+        parentObjectRotation.BindOnSettingsChanged(() => PythonController.Instance.settings.parent_object_rotation,
             v => PythonController.Instance.settings.parent_object_rotation = v);
+        parentObjectRotation.BindOnToggleValueChanged(v => PythonController.Instance.snapshotToggles.parent_object_rotation = v);
         
-        repositionObjectPosition.Bind(() => PythonController.Instance.settings.reposition_object_position,
+        repositionObjectPosition.BindOnSettingsChanged(() => PythonController.Instance.settings.reposition_object_position,
             v => PythonController.Instance.settings.reposition_object_position = v);
+        repositionObjectPosition.BindOnToggleValueChanged(v => PythonController.Instance.snapshotToggles.reposition_object_position = v);
         
-        repositionObjectRotation.Bind(() => PythonController.Instance.settings.reposition_object_rotation,
+        repositionObjectRotation.BindOnSettingsChanged(() => PythonController.Instance.settings.reposition_object_rotation,
             v => PythonController.Instance.settings.reposition_object_rotation = v);
+        repositionObjectRotation.BindOnToggleValueChanged(v => PythonController.Instance.snapshotToggles.reposition_object_rotation = v);
     }
 
     private void OnDestroy()
