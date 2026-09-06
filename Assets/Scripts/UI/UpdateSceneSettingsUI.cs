@@ -5,6 +5,7 @@ using UnityEngine;
 public class UpdateSceneSettingsUI : MonoBehaviour
 {
     [SerializeField] private GameObject helperText;
+    [SerializeField] private GameObject sliderContainer;
 
     private List<GameObject> _settingObjects = new();
 
@@ -13,6 +14,7 @@ public class UpdateSceneSettingsUI : MonoBehaviour
     private void Start()
     {
         helperText.SetActive(true);
+        sliderContainer.SetActive(false);
         
         for (int i = 0; i < transform.childCount; i++)
         {
@@ -31,6 +33,7 @@ public class UpdateSceneSettingsUI : MonoBehaviour
     private void UpdateTextSceneLoaded()
     {
         helperText.SetActive(false);
+        sliderContainer.SetActive(true);
 
         foreach (var obj in _settingObjects)
         {

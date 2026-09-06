@@ -129,6 +129,14 @@ def delete_armature_object():
         debug_log(f"deleting: {obj.name}")
         bpy.data.objects.remove(obj, do_unlink=True)
 
+    # make sure leftover animations can be deleted
+    for action in bpy.data.actions:
+        action.use_fake_user = False
+    
+    # delete orphaned objects
+    purged = bpy.data.orphans_purge(do_local_ids=True, do_linked_ids=False, do_recursive=True)
+    debug_log(f"purged: {purged}")
+
 def get_camera():
     return bpy.data.objects["Camera"]
 

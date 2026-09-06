@@ -43,6 +43,8 @@ public class SliderUpdateManager : MonoBehaviour
         repositionObjectRotation.OnSliderPairSettled += ApplyRepositionObjectRotation;
         
         // set correct UserSettings value to each pair slider and SnapshotToggles correct toggles
+        cameraOrthographicScale.BindOnToggleValueChanged(v => PythonController.Instance.snapshotToggles.camera_orthographic_scale = v);
+        
         cameraPosition.BindOnSettingsChanged(() => PythonController.Instance.settings.camera_position,
                             v => PythonController.Instance.settings.camera_position = v);
         cameraPosition.BindOnToggleValueChanged(v => PythonController.Instance.snapshotToggles.camera_position = v);
@@ -103,9 +105,10 @@ public class SliderUpdateManager : MonoBehaviour
         ChangeFloatValuePair(repositionObjectRotation, data["reposition_object_rotation"]);
         
         
+        ConsoleLog.ProcessLog("Received updated settings values");
         foreach (var (key, value) in data)
         {
-            Debug.Log($"key {key} value {value}");
+            ConsoleLog.ProcessLog($"Object key {key} Object value {value}");
         }
     }
 
@@ -120,7 +123,6 @@ public class SliderUpdateManager : MonoBehaviour
     {
         var result = value.ToObject<float[]>();
 
-        Debug.Log(string.Join(", ", result));
         slider.ChangeSliderPairValues(result);
     }
     

@@ -48,8 +48,6 @@ public class InputFieldValidation : MonoBehaviour
     
     private void OnValueChanged(string text)
     {
-        Debug.Log($"Current {text} last valid {_lastValidText} pattern {_selectedPattern}");
-        
         if (Regex.IsMatch(text, _selectedPattern))
         {
             _lastValidText = text;

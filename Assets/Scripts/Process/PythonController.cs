@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using SimpleFileBrowser;
@@ -23,8 +22,8 @@ public class PythonController : MonoBehaviour
 
     private readonly SemaphoreSlim _commandLock = new(1, 1);
     
-    public static event Action OnActionBegin;
-    public static event Action OnActionFinish;
+    public static event Action<string> OnActionBegin;
+    public static event Action<string> OnActionFinish;
     
     public static event Action OnSceneLoaded;
     public static event Action OnSceneLoadedNoFbx;
@@ -41,7 +40,7 @@ public class PythonController : MonoBehaviour
         Instance = this;
         
         _settingsManager = new SettingsManager();
-        settings = _settingsManager.settings;
+        settings = _settingsManager.Load();
     }
     
     private void Start()
@@ -64,18 +63,16 @@ public class PythonController : MonoBehaviour
         OnObjectDataRequested -= UpdateSettingsOnObjectDataReceived;
     }
 
+    public void SaveSettings()
+    {
+        _settingsManager.Save(settings);
+    }
+
     private void OnLineReceived(string line)
     {
-        Debug.Log($"UITE CE AM PRIMIT: {line}");
+        ConsoleLog.PythonLog($"Received line from Python: {line}");
     }
 
-    private void SendCommand(string command)
-    {
-        settings.current_command = command;
-
-        _processManager.SendCommand(settings);
-    }
-    
     public async Task<string> SendCommandAsync(string command)
     {
         await _commandLock.WaitAsync();
@@ -127,7 +124,6 @@ public class PythonController : MonoBehaviour
 
         if (!FileBrowser.Success) yield break;
 
-        Debug.Log(FileBrowser.Result[0]);
         settings.scene_path = FileBrowser.Result[0];
         settings.fbx_path = "";
         
@@ -138,15 +134,15 @@ public class PythonController : MonoBehaviour
     {
         try
         {
-            OnActionBegin?.Invoke();
+            OnActionBegin?.Invoke("Load Scene");
 
             string response = await SendCommandAsync("load_scene");
             var status = Utils.GetJsonStatusResponse(response);
 
             if (status == "error")
             {
-                Debug.LogError("n am putut da load la scena");
-                OnActionFinish?.Invoke();
+                Debug.LogError("Error loading Scene");
+                OnActionFinish?.Invoke("Load Scene");
                 
                 return;
             }
@@ -165,7 +161,7 @@ public class PythonController : MonoBehaviour
         }
         finally
         {
-            OnActionFinish?.Invoke();
+            OnActionFinish?.Invoke("Load Scene");
         }
     }
 
@@ -188,7 +184,6 @@ public class PythonController : MonoBehaviour
 
         if (!FileBrowser.Success) yield break;
 
-        Debug.Log(FileBrowser.Result[0]);
         settings.fbx_path = FileBrowser.Result[0];
         
         LoadFbx();
@@ -198,14 +193,14 @@ public class PythonController : MonoBehaviour
     {
         try
         {
-            OnActionBegin?.Invoke();
+            OnActionBegin?.Invoke("Load FBX");
 
             string fbxResponse = await SendCommandAsync("load_fbx");
             string fbxStatus = Utils.GetJsonStatusResponse(fbxResponse);
             if (fbxStatus == "error")
             {
-                Debug.LogError("error loading fbx");
-                OnActionFinish?.Invoke();
+                Debug.LogError("Error loading FBX");
+                OnActionFinish?.Invoke("Load FBX");
                 
                 return;
             }
@@ -214,7 +209,6 @@ public class PythonController : MonoBehaviour
             if (animations.Count != 0) OnArmatureLoaded?.Invoke(animations);
             
             OnFbxLoaded?.Invoke();
-            OnActionFinish?.Invoke();
         }
         catch (Exception e)
         {
@@ -222,7 +216,7 @@ public class PythonController : MonoBehaviour
         }
         finally
         {
-            OnActionFinish?.Invoke();
+            OnActionFinish?.Invoke("Load FBX");
         }
     }
 
@@ -230,15 +224,15 @@ public class PythonController : MonoBehaviour
     {
         try
         {
-            OnActionBegin?.Invoke();
+            OnActionBegin?.Invoke("Delete Armature");
 
             string response = await SendCommandAsync("delete_armature");
             string status = Utils.GetJsonStatusResponse(response);
             
             if (status == "error")
             {
-                Debug.LogError("n a mers delete armature");
-                OnActionFinish?.Invoke();
+                Debug.LogError("Error deleting Armature");
+                OnActionFinish?.Invoke("Delete Armature");
                 
                 return;
             }
@@ -251,7 +245,7 @@ public class PythonController : MonoBehaviour
         }
         finally
         {
-            OnActionFinish?.Invoke();
+            OnActionFinish?.Invoke("Delete Armature");
         }
     }
 
@@ -275,7 +269,7 @@ public class PythonController : MonoBehaviour
         if (!FileBrowser.Success) yield break;
         if (FileBrowser.Result.Length != 2)
         {
-            Debug.LogError($"AI NEVOIE DE 2 FILE NU {FileBrowser.Result.Length}");
+            Debug.LogError($"You need to choose 2 files, not {FileBrowser.Result.Length}");
             yield break;
         }
         
@@ -291,7 +285,7 @@ public class PythonController : MonoBehaviour
         }
         else
         {
-            Debug.LogError("NU AI SELECTAT CE TREBUIE");
+            Debug.LogError("You must select a .scene and an .fbx file");
             yield break;
         }
         
@@ -324,13 +318,13 @@ public class PythonController : MonoBehaviour
     {
         try
         {
-            OnActionBegin?.Invoke();
+            OnActionBegin?.Invoke("Get FBX armature");
 
             string response = await SendCommandAsync("get_fbx_armatures");
             if (string.IsNullOrEmpty(response))
             {
-                Debug.LogError("response is empty");
-                OnActionFinish?.Invoke();
+                Debug.LogError("Error loading FBX armature");
+                OnActionFinish?.Invoke("Get FBX armature");
                 
                 return null;
             }
@@ -338,14 +332,13 @@ public class PythonController : MonoBehaviour
             var message = Utils.GetJsonMessageResponse(response);
             if (message == null)
             {
-                Debug.LogError("message is empty");
-                OnActionFinish?.Invoke();
+                Debug.LogError("Response is empty");
+                OnActionFinish?.Invoke("Get FBX armature");
                 
                 return null;
             }
         
             var animations = message["animations"]!.ToObject<List<string>>();
-            Debug.Log(animations + " count " + animations.Count);
             
             return animations;
         }
@@ -356,7 +349,7 @@ public class PythonController : MonoBehaviour
         }
         finally
         {
-            OnActionFinish?.Invoke();
+            OnActionFinish?.Invoke("Get FBX armature");
         }
     }
 
@@ -364,15 +357,15 @@ public class PythonController : MonoBehaviour
     {
         try
         {
-            OnActionBegin?.Invoke();
+            OnActionBegin?.Invoke("Apply settings to scene");
 
             string response = await SendCommandAsync("apply_settings");
             var status = Utils.GetJsonStatusResponse(response);
 
             if (status == "error")
             {
-                Debug.LogError("status is empty");
-                OnActionFinish?.Invoke();
+                Debug.LogError("Error applying settings");
+                OnActionFinish?.Invoke("Apply settings to scene");
                 
                 return;
             }
@@ -385,7 +378,7 @@ public class PythonController : MonoBehaviour
         }
         finally
         {
-            OnActionFinish?.Invoke();
+            OnActionFinish?.Invoke("Apply settings to scene");
         }
     }
 
@@ -393,15 +386,15 @@ public class PythonController : MonoBehaviour
     {
         try
         {
-            OnActionBegin?.Invoke();
+            OnActionBegin?.Invoke("Centering object to camera");
             
             string response = await SendCommandAsync("center_to_camera");
             var status = Utils.GetJsonStatusResponse(response);
 
             if (status == "error")
             {
-                Debug.LogError("status is empty");
-                OnActionFinish?.Invoke();
+                Debug.LogError("Error centering to camera");
+                OnActionFinish?.Invoke("Centering object to camera");
                 
                 return;
             }
@@ -414,7 +407,7 @@ public class PythonController : MonoBehaviour
         }
         finally
         {
-            OnActionFinish?.Invoke();
+            OnActionFinish?.Invoke("Centering object to camera");
             GetAllObjectData(); // very important to keep this AFTER OnActionFinish
         }
     }
@@ -423,15 +416,15 @@ public class PythonController : MonoBehaviour
     {
         try
         {
-            OnActionBegin?.Invoke();
+            OnActionBegin?.Invoke("Get all object data");
             
             string response = await SendCommandAsync("get_all_object_data");
             var status = Utils.GetJsonStatusResponse(response);
 
             if (status == "error")
             {
-                Debug.LogError("status is empty");
-                OnActionFinish?.Invoke();
+                Debug.LogError("Error loading all object data");
+                OnActionFinish?.Invoke("Get all object data");
                 
                 return;
             }
@@ -446,14 +439,12 @@ public class PythonController : MonoBehaviour
         }
         finally
         {
-            OnActionFinish?.Invoke();
+            OnActionFinish?.Invoke("Get all object data");
         }
     }
 
     private void UpdateSettingsOnObjectDataReceived(Dictionary<string, JToken> data)
     {
-        Debug.Log($"received keys: {string.Join(", ", data.Keys)}");
-        
         settings.camera_orthographic_scale = data["camera_orthographic_scale"].ToObject<float>();
         settings.camera_position = data["camera_position"].ToObject<float[]>();
         //
@@ -472,6 +463,9 @@ public class PythonController : MonoBehaviour
     {
         var currentSettings = new UserSettings(settings);
 
+        if (snapshotToggles.camera_orthographic_scale)
+            currentSettings.camera_orthographic_scale = _snapshotSettings.camera_orthographic_scale;
+        
         if (snapshotToggles.camera_position) 
             currentSettings.camera_position = _snapshotSettings.camera_position;
 

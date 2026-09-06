@@ -9,8 +9,6 @@ public class RenderModelUI : MonoBehaviour
     [SerializeField] private Image modelImage;
     [SerializeField] private GameObject helperText;
     
-    
-    // TODO: add onsceneloaded event as well + helper text enable/disable for scene load
     private void Start()
     {
         helperText.SetActive(true);
@@ -33,36 +31,36 @@ public class RenderModelUI : MonoBehaviour
     }
 
     
-private void UpdateModelSnapshot(string filepath)
-{
-    Debug.Log(
-        $"UpdateModelSnapshot on {gameObject.name} " +
-        $"({GetInstanceID()}), modelImage = {modelImage}"
-    );
-
-    var sprite = LoadSpriteFromFile(filepath);
-    if (sprite == null) return;
-
-    if (modelImage == null)
+    private void UpdateModelSnapshot(string filepath)
     {
-        Debug.LogError(
-            $"modelImage is NULL! " +
-            $"RenderModelUI={GetInstanceID()}, " +
-            $"GameObject={gameObject.name}, " +
-            $"Scene={gameObject.scene.name}"
+        ConsoleLog.RenderLog(
+            $"UpdateModelSnapshot on {gameObject.name} " +
+            $"({GetInstanceID()}), modelImage = {modelImage}"
         );
-        return;
-    }
 
-    modelImage.sprite = sprite;
-    modelImage.color = new Color(1, 1, 1, 1);
-}
+        var sprite = LoadSpriteFromFile(filepath);
+        if (sprite == null) return;
+
+        if (modelImage == null)
+        {
+            Debug.LogError(
+                $"modelImage is NULL! " +
+                $"RenderModelUI={GetInstanceID()}, " +
+                $"GameObject={gameObject.name}, " +
+                $"Scene={gameObject.scene.name}"
+            );
+            return;
+        }
+
+        modelImage.sprite = sprite;
+        modelImage.color = new Color(1, 1, 1, 1);
+    }
 
     private Sprite LoadSpriteFromFile(string filepath)
     {
         if (!File.Exists(filepath))
         {
-            Debug.LogError($"n ai fila bos {filepath}");
+            Debug.LogError($"{filepath} doesn't exist");
             return null;
         }
 
@@ -74,7 +72,7 @@ private void UpdateModelSnapshot(string filepath)
 
         if (!texture.LoadImage(fileData))
         {
-            Debug.LogError($"failed to load data from {filepath}");
+            Debug.LogError($"Failed to load data from {filepath}");
             return null;
         }
 

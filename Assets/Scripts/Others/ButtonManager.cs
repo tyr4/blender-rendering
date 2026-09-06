@@ -22,16 +22,14 @@ public class ButtonManager : MonoBehaviour
     private Dictionary<Button, bool> _savedState = new();
     private bool _hasBegunAction;
 
-    private bool _hasLoadedFbx = false;
-    
     private void Start()
     {
         Init();
         
         PythonController.OnSceneLoaded += OnLoadScene;
-        PythonController.OnArmatureLoaded += OnLoadArmature;
+        // PythonController.OnArmatureLoaded += OnLoadArmature;
         PythonController.OnFbxLoaded += OnLoadFbx;
-        // PythonController.OnSceneLoadedNoFbx += OnLoadSceneNoFbx;
+        PythonController.OnSceneLoadedNoFbx += OnLoadSceneNoFbx;
         
         PythonController.OnActionBegin += OnActionBegin;
         PythonController.OnActionFinish += OnActionFinish;
@@ -40,8 +38,8 @@ public class ButtonManager : MonoBehaviour
     private void OnDestroy()
     {
         PythonController.OnSceneLoaded -= OnLoadScene;
-        PythonController.OnArmatureLoaded -= OnLoadArmature;
-        // PythonController.OnSceneLoadedNoFbx -= OnLoadSceneNoFbx;
+        // PythonController.OnArmatureLoaded -= OnLoadArmature;
+        PythonController.OnSceneLoadedNoFbx -= OnLoadSceneNoFbx;
         PythonController.OnFbxLoaded -= OnLoadFbx;
 
         PythonController.OnActionBegin -= OnActionBegin;
@@ -110,17 +108,21 @@ public class ButtonManager : MonoBehaviour
         exportAllAnims.interactable = _savedState[exportAllAnims];
     }
 
-    private void OnActionBegin()
+    private void OnActionBegin(string actionName)
     {
+        ConsoleLog.OnActionBeginLog($"Started action: {actionName}");
+        
         if (_hasBegunAction) return;
         _hasBegunAction = true;
-        
+
         UpdateButtonState();
         ToggleAll(false);
     }
 
-    private void OnActionFinish()
+    private void OnActionFinish(string actionName)
     {
+        ConsoleLog.OnActionFinishLog($"Finished action: {actionName}");
+        
         RestoreState();
         _hasBegunAction = false;
     }
@@ -138,8 +140,6 @@ public class ButtonManager : MonoBehaviour
     
     private void OnLoadScene()
     {
-        _hasLoadedFbx = false;
-        
         ToggleAll(false);
 
         loadSceneFbx.interactable = true;
@@ -150,9 +150,9 @@ public class ButtonManager : MonoBehaviour
         UpdateButtonState();
     }
 
-    private void OnLoadArmature(List<string> _)
+    private void OnLoadSceneNoFbx()
     {
-        if (_hasLoadedFbx) return;
+        // if (_hasLoadedFbx) return;
         OnLoadScene();
         
         exportSelectedAnims.interactable = true;
@@ -165,7 +165,7 @@ public class ButtonManager : MonoBehaviour
 
     private void OnLoadFbx()
     {
-        _hasLoadedFbx = true;
+        // _hasLoadedFbx = true;
         Debug.Log("AM INTRAT IN LOADFBX");
         
         reloadFbx.interactable = true;
@@ -173,17 +173,18 @@ public class ButtonManager : MonoBehaviour
         centerArmature.interactable = true;
         exportSelectedAnims.interactable = true;
         exportAllAnims.interactable = true;
+        
+        UpdateButtonState();
     }
     
     /* TODO:
      - X thread safe stdin/stdout
      - X reenable buttons in logerror (to not cause a softlock)
      - X (important) update sliders with scene values on load
-     - make settings toggles work
-     - settings edit section
-     - console section (console manager with custom function to send output there)
+     - X make settings toggles work
+     - X settings edit section
+     - X console section (console manager with custom function to send output there)
         -> color coded would be nice
-        -> able to send async commands directly
      - make export animations work correctly (do settings section before this)
      - after the spritesheet is generated, render 1 animation in the preview or all of them
         - return as json animation data -> fps specifically for the animationclip

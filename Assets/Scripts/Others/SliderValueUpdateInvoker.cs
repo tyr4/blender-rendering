@@ -19,6 +19,8 @@ public class SliderValueUpdateInvoker : MonoBehaviour
     private bool _pending;
     
     public event Action<object> OnSliderSettled;
+    private Action<bool> _snapshotSettingsSetter;
+    
     
     private void Start()
     {
@@ -38,6 +40,11 @@ public class SliderValueUpdateInvoker : MonoBehaviour
         slider.onValueChanged.RemoveListener(OnSliderValueChanged);
         toggle?.onValueChanged.RemoveListener(OnToggleValueChanged);
     }
+    
+    public void BindOnToggleValueChanged(Action<bool> setter)
+    {
+        _snapshotSettingsSetter = setter;
+    }
 
     private void OnInputFieldValueChangedEnd(string text)
     {
@@ -47,8 +54,6 @@ public class SliderValueUpdateInvoker : MonoBehaviour
         
         _lastValue = value;
         OnSliderSettled?.Invoke(value);
-        
-        Debug.Log($"AM INVOCAT {value}");
     }
 
     private void OnSliderValueChanged(float value)
@@ -66,13 +71,15 @@ public class SliderValueUpdateInvoker : MonoBehaviour
             var fixedValue = slider.wholeNumbers ? (int)_lastValue : _lastValue;
             
             OnSliderSettled?.Invoke(fixedValue);
-            Debug.Log($"AM INVOCAT {fixedValue}");
         }
     }
 
     private void OnToggleValueChanged(bool value)
     {
         IsEnabled = value;
+        
+        _snapshotSettingsSetter?.Invoke(!value);
+        PythonController.Instance.ApplySceneSettings();
     }
 
     public void ChangeSliderValue(float value)
@@ -80,7 +87,6 @@ public class SliderValueUpdateInvoker : MonoBehaviour
         if (inputField == null || slider == null) return;
         
         slider.SetValueWithoutNotify(value);
-        Debug.Log($"changed value to {value}");
         
         inputField.text = slider.wholeNumbers ? $"{slider.value:F0}" : $"{slider.value:F2}";
     }

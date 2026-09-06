@@ -40,11 +40,13 @@ public class PythonProcessManager
         ProcessStartInfo psi;
         
         // #if UNITY_EDITOR
-        var settings = new SettingsManager(); // one time use for initializing the process
-            psi = new ProcessStartInfo
+        var settingsManager = new SettingsManager(); // one time use for initializing the process
+        var settings = settingsManager.Load();
+        
+        psi = new ProcessStartInfo
             {
-                FileName = settings.settings.python_interpreter,
-                ArgumentList = { settings.settings.python_file_path },
+                FileName = settings.python_interpreter,
+                ArgumentList = { settings.python_file_path },
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -72,7 +74,7 @@ public class PythonProcessManager
         _process.ErrorDataReceived += (sender, e) =>
         {
             if (!string.IsNullOrEmpty(e.Data))
-                Debug.Log("[python stderr] " + e.Data);
+                Debug.LogError("Python stderr: " + e.Data);
         };
         _process.BeginErrorReadLine();
     }
@@ -117,15 +119,6 @@ public class PythonProcessManager
         }
     }
 
-    public void SendCommand(UserSettings settings)
-    {
-        string json = JsonConvert.SerializeObject(settings);
-
-        Debug.Log($"UITE JSON: {json}");
-        _stdin.WriteLine(json);
-        _stdin.Flush();
-    }
-
     public Task<string> SendCommandAsync(UserSettings settings, TimeSpan? timeout = null)
     {
         settings.request_id = Guid.NewGuid().ToString();
@@ -141,12 +134,12 @@ public class PythonProcessManager
             
             try
             {
-                Debug.Log($"about to write {json}");
+                ConsoleLog.ProcessLog($"About to write {json}");
                 _stdin.WriteLine(json);
-                Debug.Log("wrote");
+                ConsoleLog.ProcessLog("Finished writing");
 
                 _stdin.Flush();
-                Debug.Log("flushed");
+                ConsoleLog.ProcessLog("Flushed");
             }
             catch (Exception e)
             {

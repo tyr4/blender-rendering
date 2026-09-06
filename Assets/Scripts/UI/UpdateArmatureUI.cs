@@ -7,14 +7,14 @@ public class UpdateArmatureUI : MonoBehaviour
 {
     [SerializeField] private GameObject objPrefab;
     [SerializeField] private GameObject helperText;
+    [SerializeField] private GameObject sliderContainer;
 
-    private PythonController _controller;
     private readonly List<GameObject> _activeObjects = new();
         
     private void Start()
     {
-        _controller = PythonController.Instance;
         helperText.SetActive(true);
+        sliderContainer.SetActive(false);
 
         PythonController.OnArmatureLoaded += UpdateTextArmatureLoaded;
         PythonController.OnSceneLoaded += UpdateTextOnlySceneLoaded;
@@ -29,12 +29,13 @@ public class UpdateArmatureUI : MonoBehaviour
     private void UpdateTextArmatureLoaded(List<string> animations)
     {
         helperText.SetActive(false);
+        sliderContainer.SetActive(true);
         
         for (int i = 0; i < animations.Count; i++)
         {
             var anim = animations[i];
             GameObject obj;
-            
+
             if (i < _activeObjects.Count)
             {
                 obj = _activeObjects[i];
@@ -56,7 +57,7 @@ public class UpdateArmatureUI : MonoBehaviour
             _activeObjects[i].SetActive(false);
         }
         
-        Debug.Log(string.Join(", ", animations));
+        ConsoleLog.RenderLog($"Found {animations.Count} animations: " + string.Join(", ", animations));
     }
     
     private void UpdateTextOnlySceneLoaded()
