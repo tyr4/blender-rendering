@@ -24,6 +24,9 @@ public class SliderUpdateManager : MonoBehaviour
     
     private void Start()
     {
+        resolutionX.ChangeSliderValue(settings.resolution_x);
+        resolutionY.ChangeSliderValue(settings.resolution_y);
+        
         // subscribe to events
         PythonController.OnObjectDataRequested += OnObjectDataRequested;
 
