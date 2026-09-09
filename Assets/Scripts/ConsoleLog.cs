@@ -6,6 +6,5 @@ public static class ConsoleLog
     public static void ProcessLog(string message) => Debug.Log($"[PROCESS]{message}"); 
     public static void RenderLog(string message) => Debug.Log($"[RENDER]{message}"); 
     public static void OnActionBeginLog(string message) => Debug.Log($"[ONACTIONBEGIN]{message}"); 
-    public static void OnActionFinishLog(string message) => Debug.Log($"[ONACTIONFINISH" +
-                                                                      $"]{message}");
+    public static void OnActionFinishLog(string message) => Debug.Log($"[ONACTIONFINISH]{message}");
 }

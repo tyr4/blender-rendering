@@ -3,6 +3,7 @@
 .idea/
 .venv/
 /Assets/Sounds
+/Assets/Generated Sprites
 
 Base Generator/*
 !Base Generator/main.py

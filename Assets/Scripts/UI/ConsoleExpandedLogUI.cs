@@ -7,6 +7,8 @@ public class ConsoleExpandedLogUI : MonoBehaviour
 
     private void Start()
     {
+        textObject.SetText("Click on a Console Log to view its details!");
+        
         ConsoleTextButton.OnConsoleButtonClicked += UpdateExpandedLogText;
     }
 

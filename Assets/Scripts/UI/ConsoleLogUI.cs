@@ -116,12 +116,13 @@ public class ConsoleLogUI : MonoBehaviour
         text.SetText(log.displayText);
         text.color = log.color;
 
-        Debug.Log($"{IgnoreTag}setting color {log.color}");
+        // Debug.Log($"{IgnoreTag}setting color {log.color}");
 
         // obj.GetComponentInChildren<TextMeshProUGUI>().SetText(logString);
         obj.GetComponentInChildren<ConsoleTextButton>().SetFullLogText(stackTrace, log.color);
         
         _nextIndex = (_nextIndex + 1) % _pool.Count;
+        RefreshVisibility();
     }
 
     private (string displayText, Color color, string tag) ParseLogString(string logString, LogType type)
@@ -134,7 +135,7 @@ public class ConsoleLogUI : MonoBehaviour
         {
             if (logString.StartsWith(entry.tag))
             {
-                displayText = displayText.Substring(entry.tag.Length);
+                displayText = displayText.Substring(entry.tag.Length).Replace('\\', '/');
                 color = entry.color;
                 tag = entry.tag;
                 break;

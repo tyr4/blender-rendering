@@ -1,13 +1,34 @@
 ﻿import os
 import json
+import re
 import sys
 import traceback
 import datetime
 
-
 import bpy
 from PIL import Image, ImageDraw
 import math
+
+bpy_package_dir = os.path.dirname(bpy.__file__)
+addons_core_path = os.path.join(bpy_package_dir, "scripts", "addons_core")
+
+if addons_core_path not in sys.path:
+    sys.path.append(addons_core_path)
+    
+import io_scene_fbx.import_fbx as import_fbx_module
+
+_original_blen_read_light = import_fbx_module.blen_read_light
+
+def patched_blen_read_light(fbx_tmpl, fbx_obj, settings):
+    try:
+        return _original_blen_read_light(fbx_tmpl, fbx_obj, settings)
+    except AttributeError as e:
+        if "cast_shadow" in str(e):
+            debug_log(f"Skipping known FBX light-import bug: {e}")
+            return None
+        raise
+
+import_fbx_module.blen_read_light = patched_blen_read_light
 
 has_loaded_scene = False
 
@@ -183,7 +204,6 @@ def change_camera_orthographic_size(size: float):
 
     camera.data.ortho_scale = size
 
-
 def init_scene(settings: dict, load_fbx: bool = False):
     load_scene(settings["scene_path"])
 
@@ -197,27 +217,38 @@ def init_scene(settings: dict, load_fbx: bool = False):
 
     bpy.context.scene.camera = get_camera()
 
-def render_animation(settings: dict, anim_index: int):
+def render_animation(settings: dict, anim_index: int) -> int:
+    clean_anim_files(settings)
+    
     armature = get_armature_object()
     target_action = bpy.data.actions[anim_index]
 
     anim_data = armature.animation_data_create()
     anim_data.action = target_action
-    anim_data.action_slot = anim_data.action_suitable_slots[0]
+    
+    suitable_slots = anim_data.action_suitable_slots
+    if len(suitable_slots) > 0:
+        anim_data.action_slot = suitable_slots[0]
+    else:
+        debug_log(f"Action '{target_action.name}' has no suitable slots, creating one")
+        new_slot = target_action.slots.new(id_type='OBJECT', name=target_action.name)
+        anim_data.action_slot = new_slot
 
     start, end = target_action.frame_range
     scene = bpy.context.scene
     scene.frame_start = int(start)
     scene.frame_end = int(end)
+    actual_frames = scene.frame_end - scene.frame_start + 1
 
     scene.render.filepath = settings["render_temp_output_path"] + settings["render_temp_output_name"]
     scene.render.image_settings.file_format = "PNG"
 
-    apply_settings_to_scene(settings)
+    # apply_settings_to_scene(settings)
 
     bpy.ops.render.render(use_viewport=True, write_still=True, animation=True)
-
     debug_log(start, end)
+    
+    return actual_frames
 
 def clean_anim_files(settings: dict):
     path = settings["render_temp_output_path"]
@@ -228,7 +259,7 @@ def clean_anim_files(settings: dict):
     for file in files:
         os.remove(path + file)
 
-def save_spritesheet(settings: dict, output_name: str):
+def save_spritesheet(settings: dict, output_name: str, total_frames: int):
     render_path = settings["render_temp_output_path"]
     render_name = settings["render_temp_output_name"]
 
@@ -245,9 +276,16 @@ def save_spritesheet(settings: dict, output_name: str):
     for i, img in enumerate(images):
         x = (i % columns) * frame_width
         y = (i // columns) * frame_height
-        sheet.paste(img, (x, y))
+        sheet.paste(img, (x, y))    
 
-    sheet.save(os.path.join(settings["spritesheet_output_path"], output_name))
+    output_path = os.path.join(settings["spritesheet_output_path"], output_name)
+    sheet.save(output_path)
+    
+    return {"output_path": output_path,
+            "columns": columns,
+            "rows": rows,
+            "frame_count": total_frames
+           } 
 
 def render_single_frame(settings: dict,
                         anim_index: int | None = None,
@@ -265,7 +303,7 @@ def render_single_frame(settings: dict,
         
     scene = bpy.context.scene
     scene.frame_current = frame
-
+   
     filepath = settings["render_temp_output_path"] + settings["render_temp_output_name"] + "static"
     scene.render.filepath = filepath
 
@@ -375,6 +413,9 @@ def center_object_to_camera(root_obj, camera, move_obj):
 
     bpy.context.view_layer.update()
 
+def sanitize_filename(name: str) -> str:
+    return re.sub(r'[\\/:*?"<>|]', '_', name)
+
 def run_calculator(settings):
     # init_scene(settings)
     apply_settings_to_scene(settings)
@@ -386,13 +427,14 @@ def run_calculator(settings):
     for anim in range(len(anims)):
         for i in range(settings["directions"]):
             parent_rotation = (0, 0, i * step)
-            final_rotation = settings["starting_rotation"] + parent_rotation
-
+            final_rotation = tuple(a + b for a, b in zip(settings["starting_rotation"], parent_rotation))
+            debug_log(f"degrees {i*step} rotation {final_rotation}")
+            
             change_object_rotation(obj, vector3_rotation=final_rotation)
-            output_name = anims[anim].name + f"_{int(i * step)}.png"
+            output_name = sanitize_filename(anims[anim].name) + f"_{int(i * step)}.png"
 
-            render_animation(settings=settings, anim_index=anim)
-            save_spritesheet(settings=settings, output_name=output_name)
+            frames = render_animation(settings=settings, anim_index=anim)
+            save_spritesheet(settings=settings, output_name=output_name, total_frames=frames)
 
         clean_anim_files(settings)
 
@@ -516,6 +558,32 @@ def handle_command(settings: dict):
             
             return send_response({"status": "success", "message": result}, settings)
             
+        elif cmd == "generate_all_spritesheets":
+            run_calculator(settings)
+            return send_response({"status": "success", "message": "generated all spritesheets"}, settings)
+            
+        elif cmd == "generate_selected_spritesheets":
+            # key anim string, value enabled/disabled
+            anim_dict: dict = settings["animation_dict"]
+            debug_log(anim_dict)
+            
+            for i, (key, value) in enumerate(anim_dict.items()):
+                if value is True:
+                    render_animation(settings, anim_index=i)
+
+            return send_response({"status": "success", "message": "finished rendering selected animations"}, settings)
+        
+        elif cmd == "render_single_anim":
+            animations = bpy.data.actions
+            anim_index = settings["selected_anim"]
+            output_name = sanitize_filename(animations[anim_index].name) + ".png"
+            
+            frames = render_animation(settings, anim_index=anim_index)
+            spritesheet_data = save_spritesheet(settings, output_name, frames)
+            clean_anim_files(settings)
+            
+            return send_response({"status": "success", "message": spritesheet_data}, settings)
+            
         else:
             return send_response({"status": "error", "message": f"invalid command: {cmd}"}, settings)
 
@@ -549,25 +617,29 @@ def main():
 
 # data = bpy.data
 # objects = list(data.objects)
-# settings_dict = {"current_command": "",
-#                  "scene_path": "D:\\Blender Stuff\\Scenes\\empty_scene.blend", # required
-#                  "fbx_path": "D:\\Blender Stuff\\Models\\robot\\episode_71.fbx",
-#                  "render_temp_output_path": "D:\\Blender Stuff\\Output\\robot_test\\", # required
-#                  "render_temp_output_name": "anim_", # required
-#                  "spritesheet_output_path": "D:\\Blender Stuff\\Output\\robot_test\\", # required
-#                  "directions": 4, # required
-#                  "resolution_x": 98,
-#                  "resolution_y": 98,
-#                  "camera_orthographic_scale": 5.7, # float
-#                  "camera_position": None, # Vector
-#                  "starting_rotation": (0, 0, 0), # Vector
-#                  "reposition_object_position": None, # Vector
-#                  "reposition_object_rotation": None, # Vector
-#                  "parent_object_position": (1, 0, 0),
-#                  "parent_object_rotation": None
-#                  }
+settings_dict = {"current_command": "",
+                 "scene_path": "D:\\Blender Stuff\\Scenes\\empty_scene.blend", # required
+                 "fbx_path": "D:\\Blender Stuff\\Models\\robot\\episode_71.fbx",
+                 "render_temp_output_path": "D:\\Blender Stuff\\Output\\robot_test\\", # required
+                 "render_temp_output_name": "anim_", # required
+                 "spritesheet_output_path": "D:\\Blender Stuff\\Output\\robot_test\\", # required
+                 "directions": 4, # required
+                 "resolution_x": 98,
+                 "resolution_y": 98,
+                 "camera_orthographic_scale": 5.7, # float
+                 "camera_position": None, # Vector
+                 "starting_rotation": (0, 0, 0), # Vector
+                 "reposition_object_position": None, # Vector
+                 "reposition_object_rotation": None, # Vector
+                 "parent_object_position": (1, 0, 0),
+                 "parent_object_rotation": None
+                 }
+
+
 
 if __name__ == "__main__":
     main()
+    # init_scene(settings_dict, load_fbx=True)
+    # render_animation(settings_dict, anim_index=1)
     # init_scene(settings_dict, load_fbx=True)
     # render_single_frame(settings_dict)

@@ -7,6 +7,7 @@ public class SliderUpdateManager : MonoBehaviour
 {
     [SerializeField] private SliderValueUpdateInvoker resolutionX;
     [SerializeField] private SliderValueUpdateInvoker resolutionY;
+    [SerializeField] private SliderValueUpdateInvoker directions;
     
     [SerializeField] private SliderValueUpdateInvoker cameraOrthographicScale;
     [SerializeField] private SliderPairValueUpdateInvoker cameraPosition;
@@ -26,12 +27,14 @@ public class SliderUpdateManager : MonoBehaviour
     {
         resolutionX.ChangeSliderValue(settings.resolution_x);
         resolutionY.ChangeSliderValue(settings.resolution_y);
+        directions.ChangeSliderValue(settings.directions);
         
         // subscribe to events
         PythonController.OnObjectDataRequested += OnObjectDataRequested;
 
         resolutionX.OnSliderSettled += ApplyResolutionX;
         resolutionY.OnSliderSettled += ApplyResolutionY;
+        directions.OnSliderSettled += ApplyDirections;
         
         cameraOrthographicScale.OnSliderSettled += ApplyCameraOrthographicScale;
         
@@ -80,6 +83,7 @@ public class SliderUpdateManager : MonoBehaviour
 
         resolutionX.OnSliderSettled -= ApplyResolutionX;
         resolutionY.OnSliderSettled -= ApplyResolutionY;
+        directions.OnSliderSettled -= ApplyDirections;
         
         cameraOrthographicScale.OnSliderSettled -= ApplyCameraOrthographicScale;
         
@@ -129,7 +133,14 @@ public class SliderUpdateManager : MonoBehaviour
         slider.ChangeSliderPairValues(result);
     }
     
-    #region OnSettingsChangedRequests 
+    #region OnSettingsChangedRequests
+    private void ApplyDirections(object value)
+    {
+        settings.directions = Convert.ToInt32(value);
+        
+        OnSettingsChangedRequest?.Invoke();
+    }
+    
     private void ApplyResolutionX(object value)
     {
         settings.resolution_x = Convert.ToInt32(value);
@@ -191,14 +202,6 @@ public class SliderUpdateManager : MonoBehaviour
         settings.reposition_object_rotation = (float[])value;
         
         OnSettingsChangedRequest?.Invoke();
-    }
-    #endregion
-
-    #region  OnSettingsUpdated
-
-    private void ApplySettingsUpdated(UserSettings userSettings)
-    {
-        // cameraPosition.v
     }
     #endregion
 }

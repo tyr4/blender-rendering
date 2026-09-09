@@ -81,7 +81,7 @@ public class SetSettingsValuesUI : MonoBehaviour
 
         if (!FileBrowser.Success) yield break;
         
-        var result = FileBrowser.Result[0];
+        var result = FileBrowser.Result[0] + "\\";
         
         spritesheetPathText.text = ShortenStringOutput(result);
         
@@ -101,7 +101,7 @@ public class SetSettingsValuesUI : MonoBehaviour
 
         if (!FileBrowser.Success) yield break;
 
-        var result = FileBrowser.Result[0];
+        var result = FileBrowser.Result[0] + "\\";
         
         renderTempPathText.text = ShortenStringOutput(result);
         

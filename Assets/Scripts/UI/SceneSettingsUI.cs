@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UpdateSceneSettingsUI : MonoBehaviour
+public class SceneSettingsUI : MonoBehaviour
 {
     [SerializeField] private GameObject helperText;
     [SerializeField] private GameObject sliderContainer;

@@ -127,14 +127,15 @@ public class PythonProcessManager
         _pending[settings.request_id] = tcs;
 
         string json = JsonConvert.SerializeObject(settings);
-
+        string formatted = JsonConvert.SerializeObject(settings, Formatting.Indented);
+        
         _ = Task.Run( async () =>
         {
             await _writeLock.WaitAsync();
             
             try
             {
-                ConsoleLog.ProcessLog($"About to write {json}");
+                ConsoleLog.ProcessLog($"About to write {formatted}");
                 _stdin.WriteLine(json);
                 ConsoleLog.ProcessLog("Finished writing");
 

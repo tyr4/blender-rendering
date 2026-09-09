@@ -33,6 +33,7 @@ public class PythonController : MonoBehaviour
     public static event Action<List<string>> OnArmatureLoaded;
     public static event Action OnSettingsChanged;
     public static event Action OnRenderRequested;
+    public static event Action<AnimationClip> OnAnimationClipGenerated;
     public static event Action<Dictionary<string, JToken>> OnObjectDataRequested;
 
     private void Awake()
@@ -51,7 +52,7 @@ public class PythonController : MonoBehaviour
         _processManager.OnLineReceived += OnLineReceived;
 
         SliderUpdateManager.OnSettingsChangedRequest += ApplySceneSettings;
-        UpdateSceneSettingsUI.OnSceneUILoaded += GetAllObjectData;
+        SceneSettingsUI.OnSceneUILoaded += GetAllObjectData;
         OnObjectDataRequested += UpdateSettingsOnObjectDataReceived;
     }
 
@@ -59,7 +60,7 @@ public class PythonController : MonoBehaviour
     {
         _processManager.OnLineReceived -= OnLineReceived;
         SliderUpdateManager.OnSettingsChangedRequest -= ApplySceneSettings;
-        UpdateSceneSettingsUI.OnSceneUILoaded -= GetAllObjectData;
+        SceneSettingsUI.OnSceneUILoaded -= GetAllObjectData;
         OnObjectDataRequested -= UpdateSettingsOnObjectDataReceived;
     }
 
@@ -103,6 +104,29 @@ public class PythonController : MonoBehaviour
         
         FileBrowser.SetFilters(false, new FileBrowser.Filter(categoryName, extensions));
         // FileBrowser.SetDefaultFilter(extensions[0]);
+    }
+
+    private void BuildAnimationDictionary(List<string> animations)
+    {
+        settings.animation_dict.Clear();
+
+        foreach (var anim in animations)
+        {
+            settings.animation_dict.Add(anim, true);
+        }
+    }
+
+    public void SetAnimationToggle(string anim, bool value)
+    {
+        if (settings.animation_dict.Count == 0) return;
+        
+        settings.animation_dict[anim] = value;
+    }
+
+    public void SetRequestedRenderAnimation(int index)
+    {
+        settings.selected_anim = index;
+        RenderSingleAnimation();
     }
 
     public void PickSceneButtonWrapper()
@@ -151,7 +175,8 @@ public class PythonController : MonoBehaviour
             
             var animations = await GetFbxAnimations();
             if (animations.Count == 0) return;
-
+            
+            BuildAnimationDictionary(animations);
             OnArmatureLoaded?.Invoke(animations);
             OnSceneLoadedNoFbx?.Invoke();
         }
@@ -313,6 +338,16 @@ public class PythonController : MonoBehaviour
     {
         CenterArmatureToCamera();
     }
+
+    public void ExportAllAnimationsButton()
+    {
+        GenerateAllSpritesheets();
+    }
+    
+    public void ExportSelectedAnimationsButton()
+    {
+        GenerateSelectedSpritesheets();
+    }
     
     public async Task<List<string>> GetFbxAnimations()
     {
@@ -358,6 +393,8 @@ public class PythonController : MonoBehaviour
         try
         {
             OnActionBegin?.Invoke("Apply settings to scene");
+            
+            SaveSettings();
 
             string response = await SendCommandAsync("apply_settings");
             var status = Utils.GetJsonStatusResponse(response);
@@ -485,5 +522,96 @@ public class PythonController : MonoBehaviour
             currentSettings.reposition_object_rotation = _snapshotSettings.reposition_object_rotation;
         
         return currentSettings;
+    }
+
+    private async void GenerateAllSpritesheets()
+    {
+        try
+        {
+            OnActionBegin?.Invoke("Generate all spritesheets");
+            
+            string response = await SendCommandAsync("generate_all_spritesheets");
+            var status = Utils.GetJsonStatusResponse(response);
+
+            if (status == "error")
+            {
+                Debug.LogError("Error generating all spritesheets");
+                OnActionFinish?.Invoke("Generate all spritesheets");
+                
+                return;
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+        finally
+        {
+            OnActionFinish?.Invoke("Generate all spritesheets");
+        }
+    }
+
+    private async void GenerateSelectedSpritesheets()
+    {
+        try
+        {
+            OnActionBegin?.Invoke("Generate all spritesheets");
+            
+            string response = await SendCommandAsync("generate_selected_spritesheets");
+            var status = Utils.GetJsonStatusResponse(response);
+
+            if (status == "error")
+            {
+                Debug.LogError("Error generating all spritesheets");
+                OnActionFinish?.Invoke("Generate all spritesheets");
+                
+                return;
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+        finally
+        {
+            OnActionFinish?.Invoke("Generate all spritesheets");
+        }
+    }
+
+    private async void RenderSingleAnimation()
+    {
+        try
+        {
+            OnActionBegin?.Invoke("Render single anim");
+            
+            string response = await SendCommandAsync("render_single_anim");
+            var status = Utils.GetJsonStatusResponse(response);
+
+            if (status == "error")
+            {
+                Debug.LogError("Error rendering single anim");
+                OnActionFinish?.Invoke("Render single anim");
+                
+                return;
+            }
+
+            var message = Utils.GetJsonMessageResponse(response);
+            var spritesheetPath = message["output_path"]!.ToObject<string>();
+            var columns = message["columns"]!.ToObject<int>();
+            var rows = message["rows"]!.ToObject<int>();
+            var frameCount = message["frame_count"]!.ToObject<int>();
+
+            var anim = AnimationClipGenerator.CreateAnimationClip(spritesheetPath, settings.fps, columns, rows, frameCount);
+            OnAnimationClipGenerated?.Invoke(anim);
+            ConsoleLog.ProcessLog($"UITE ANIMATION {anim}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+        finally
+        {
+            OnActionFinish?.Invoke("Render single anim");
+        }
     }
 }

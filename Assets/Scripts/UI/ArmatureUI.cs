@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
-public class UpdateArmatureUI : MonoBehaviour
+public class ArmatureUI : MonoBehaviour
 {
     [SerializeField] private GameObject objPrefab;
     [SerializeField] private GameObject helperText;
     [SerializeField] private GameObject sliderContainer;
 
-    private readonly List<GameObject> _activeObjects = new();
+    private readonly List<ArmatureUIObject> _activeObjects = new();
         
     private void Start()
     {
@@ -30,23 +30,27 @@ public class UpdateArmatureUI : MonoBehaviour
     {
         helperText.SetActive(false);
         sliderContainer.SetActive(true);
-        
+
         for (int i = 0; i < animations.Count; i++)
         {
             var anim = animations[i];
             GameObject obj;
-
+            ArmatureUIObject armatureObj;
+            
             if (i < _activeObjects.Count)
             {
-                obj = _activeObjects[i];
+                armatureObj = _activeObjects[i];
+                obj = _activeObjects[i].gameObject;
                 obj.SetActive(true);
             }
             else
             {
                 obj = Instantiate(objPrefab, transform);
-                _activeObjects.Add(obj);            
+                armatureObj = obj.GetComponent<ArmatureUIObject>();
+                _activeObjects.Add(armatureObj);
             }
             
+            armatureObj.Init(anim, i);
             var text = obj.GetComponentInChildren<TMP_Text>();
             text.text = anim;
         }
@@ -54,7 +58,7 @@ public class UpdateArmatureUI : MonoBehaviour
         // disable extra objects
         for (int i = animations.Count; i < _activeObjects.Count; i++)
         {
-            _activeObjects[i].SetActive(false);
+            _activeObjects[i].gameObject.SetActive(false);
         }
         
         ConsoleLog.RenderLog($"Found {animations.Count} animations: " + string.Join(", ", animations));
@@ -64,7 +68,7 @@ public class UpdateArmatureUI : MonoBehaviour
     {
         foreach (var obj in _activeObjects)
         {
-            obj.SetActive(false);
+            obj.gameObject.SetActive(false);
         }
         
         helperText.SetActive(true);
