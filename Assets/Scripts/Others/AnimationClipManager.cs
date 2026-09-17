@@ -12,12 +12,14 @@ public class AnimationClipManager : MonoBehaviour
     private void Start()
     {
         _controllerSavePath = Application.dataPath + "/AnimationClips/";
-        PythonController.OnAnimationClipGenerated += AssignClipToGameObject;  
+        PythonController.OnAnimationClipGenerated += AssignClipToGameObject;
+        PythonController.OnAnimationClipWithSkipsGenerated += AssignClipToGameObject;
     }
 
     private void OnDestroy()
     {
         PythonController.OnAnimationClipGenerated -= AssignClipToGameObject;
+        PythonController.OnAnimationClipWithSkipsGenerated -= AssignClipToGameObject;
     }
 
     private void AssignClipToGameObject(AnimationClip clip)

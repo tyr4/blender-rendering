@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class RenderModelUI : MonoBehaviour
 {
     [SerializeField] private Image modelImage;
+    [SerializeField] private RawImage animationPreviewImage;
     [SerializeField] private GameObject helperText;
     
     private void Start()
@@ -15,21 +16,48 @@ public class RenderModelUI : MonoBehaviour
 
         modelImage.preserveAspect = true;
         modelImage.color = new Color(1, 1, 1, 0);
+        DisableAnimationPreview();
         
         RenderModelManager.OnModelRender += OnModelRender;
+        PythonController.OnAnimationClipGenerated += OnAnimationClipGenerated;
     }
 
     private void OnDestroy()
     {
         RenderModelManager.OnModelRender -= OnModelRender;
+        PythonController.OnAnimationClipGenerated -= OnAnimationClipGenerated;
     }
 
     private void OnModelRender(string filepath)
     {
         helperText.SetActive(false);
         UpdateModelSnapshot(filepath);
+        
+        DisableAnimationPreview();
     }
 
+    private void OnAnimationClipGenerated(AnimationClip clip)
+    {
+        EnableAnimationPreview();
+    }
+
+    private void EnableAnimationPreview()
+    {
+        modelImage.gameObject.SetActive(false);
+        // modelImage.color = new Color(1, 1, 1, 0);
+        
+        animationPreviewImage.gameObject.SetActive(true);
+        // animationPreviewImage.color = new Color(1, 1, 1, 1);
+    }
+
+    private void DisableAnimationPreview()
+    {
+        // modelImage.color = new Color(1, 1, 1, 0);
+        modelImage.gameObject.SetActive(true);
+
+        // animationPreviewImage.color = new Color(1, 1, 1, 1);
+        animationPreviewImage.gameObject.SetActive(false);
+    }
     
     private void UpdateModelSnapshot(string filepath)
     {

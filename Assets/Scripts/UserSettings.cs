@@ -26,6 +26,7 @@ public class UserSettings
     public float[]? reposition_object_rotation { get; set; }
     public Dictionary<string, bool> animation_dict { get; set; } = new();
     public int selected_anim { get; set; } = 0;
+    public Dictionary<string, List<bool>> selected_anim_skip_keyframes { get; set; } = new();
     
     public UserSettings() { }
 
@@ -53,5 +54,6 @@ public class UserSettings
         reposition_object_rotation = (float[]?)other.reposition_object_rotation?.Clone();
         animation_dict = new Dictionary<string, bool>(other.animation_dict);
         selected_anim = other.selected_anim;
+        selected_anim_skip_keyframes = new Dictionary<string, List<bool>>(other.selected_anim_skip_keyframes);
     }
 }

@@ -4,6 +4,7 @@ import re
 import sys
 import traceback
 import datetime
+from ast import Continue
 
 import bpy
 from PIL import Image, ImageDraw
@@ -217,7 +218,7 @@ def init_scene(settings: dict, load_fbx: bool = False):
 
     bpy.context.scene.camera = get_camera()
 
-def render_animation(settings: dict, anim_index: int) -> int:
+def render_animation(settings: dict, anim_index: int, skip_render: bool = False) -> int:
     clean_anim_files(settings)
     
     armature = get_armature_object()
@@ -240,6 +241,9 @@ def render_animation(settings: dict, anim_index: int) -> int:
     scene.frame_end = int(end)
     actual_frames = scene.frame_end - scene.frame_start + 1
 
+    if skip_render:
+        return actual_frames
+    
     scene.render.filepath = settings["render_temp_output_path"] + settings["render_temp_output_name"]
     scene.render.image_settings.file_format = "PNG"
 
@@ -249,6 +253,7 @@ def render_animation(settings: dict, anim_index: int) -> int:
     debug_log(start, end)
     
     return actual_frames
+    
 
 def clean_anim_files(settings: dict):
     path = settings["render_temp_output_path"]
@@ -286,6 +291,17 @@ def save_spritesheet(settings: dict, output_name: str, total_frames: int):
             "rows": rows,
             "frame_count": total_frames
            } 
+
+# def should_skip_anim_frame(settings: dict, key: str | None, frame_index) -> bool:
+#     if key is None:
+#         return False
+#     
+#     keyframes = settings["selected_anim_skip_keyframes"]
+#     
+#     if (value := keyframes.get(key, None)) is not None:
+#         return value[frame_index]
+#     
+#     return False
 
 def render_single_frame(settings: dict,
                         anim_index: int | None = None,
@@ -576,7 +592,8 @@ def handle_command(settings: dict):
         elif cmd == "render_single_anim":
             animations = bpy.data.actions
             anim_index = settings["selected_anim"]
-            output_name = sanitize_filename(animations[anim_index].name) + ".png"
+            raw_name = animations[anim_index].name
+            output_name = sanitize_filename(raw_name) + ".png"
             
             frames = render_animation(settings, anim_index=anim_index)
             spritesheet_data = save_spritesheet(settings, output_name, frames)

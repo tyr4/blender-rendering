@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.U2D.Sprites;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public static class AnimationClipGenerator
 {
@@ -157,6 +158,97 @@ public static class AnimationClipGenerator
         var clip = CreateClipFromSprites(sprites, savePath, frameRate);
         
         return clip;
+    }
+
+    public static AnimationClip RebuildClipSkippingKeyframes(AnimationClip source, List<bool> skipFlags)
+    {
+        if (source == null)
+        {
+            Debug.LogError("source clip is null");
+            return null;
+        }
+        
+        var sourcePath = AssetDatabase.GetAssetPath(source);
+        var newClip = new AnimationClip { frameRate = source.frameRate };
+        var settings = AnimationUtility.GetAnimationClipSettings(source);
+        AnimationUtility.SetAnimationClipSettings(newClip, settings);
+
+        // object reference curves (sprites, materials etc)
+        foreach (var binding in AnimationUtility.GetObjectReferenceCurveBindings(source))
+        {
+            var keys = AnimationUtility.GetObjectReferenceCurve(source, binding);
+            // ValidateLength(keys.Length, skipFlags, binding.propertyName);
+            
+            var kept = new List<ObjectReferenceKeyframe>();
+            for (int i = 0; i < keys.Length; i++)
+            {
+                if (i < skipFlags.Count && skipFlags[i]) continue;
+                
+                kept.Add(keys[i]);
+            }
+
+            Retime(kept, source.frameRate);
+            
+            AnimationUtility.SetObjectReferenceCurve(newClip, binding, kept.ToArray());
+        }
+        
+        // float reference curves (position, rotation etc)
+        foreach (var binding in AnimationUtility.GetCurveBindings(source))
+        {
+            var curve = AnimationUtility.GetEditorCurve(source, binding);
+            var keys = curve.keys;
+            // ValidateLength(keys.Length, skipFlags, binding.propertyName);
+
+            var kept = new List<Keyframe>();
+            for (int i = 0; i < keys.Length; i++)
+            {
+                if (i < skipFlags.Count && skipFlags[i]) continue;
+                kept.Add(keys[i]);
+            }
+            RetimeFloatKeys(kept, source.frameRate);
+
+            var newCurve = new AnimationCurve(kept.ToArray());
+            AnimationUtility.SetEditorCurve(newClip, binding, newCurve);
+        }
+        
+        AnimationUtility.SetAnimationEvents(newClip, AnimationUtility.GetAnimationEvents(source));
+
+        var savePath = sourcePath.Replace(".anim", "_skipped.anim");
+        AssetDatabase.CreateAsset(newClip, savePath);
+        AssetDatabase.SaveAssets();
+
+        return newClip;
+    }
+    //
+    // private static void ValidateLength(int keyCount, List<bool> skipFlags, string propertyName)
+    // {
+    //     if (keyCount != skipFlags.Count)
+    //     {
+    //         Debug.LogWarning(
+    //             $"RebuildClipSkippingKeyframes: skipFlags length ({skipFlags.Count}) " +
+    //             $"doesn't match keyframe count ({keyCount}) for '{propertyName}'. " +
+    //             "Indices past the shorter list will be kept as-is.");
+    //     }
+    // }
+    //
+    private static void Retime(List<ObjectReferenceKeyframe> keys, float frameRate)
+    {
+        for (int i = 0; i < keys.Count; i++)
+        {
+            var k = keys[i];
+            k.time = i / frameRate;
+            keys[i] = k;
+        }
+    }
+
+    private static void RetimeFloatKeys(List<Keyframe> keys, float frameRate)
+    {
+        for (int i = 0; i < keys.Count; i++)
+        {
+            var k = keys[i];
+            k.time = i / frameRate;
+            keys[i] = k;
+        }
     }
 }
 #endif

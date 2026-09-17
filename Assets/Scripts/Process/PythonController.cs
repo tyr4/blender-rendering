@@ -17,6 +17,7 @@ public class PythonController : MonoBehaviour
     
     private UserSettings _snapshotSettings;
     public SnapshotToggles snapshotToggles { get; set; } = new();
+    private AnimationClip _currentAnim;
     
     private string _settingsPath;
 
@@ -34,6 +35,7 @@ public class PythonController : MonoBehaviour
     public static event Action OnSettingsChanged;
     public static event Action OnRenderRequested;
     public static event Action<AnimationClip> OnAnimationClipGenerated;
+    public static event Action<AnimationClip> OnAnimationClipWithSkipsGenerated;
     public static event Action<Dictionary<string, JToken>> OnObjectDataRequested;
 
     private void Awake()
@@ -53,6 +55,8 @@ public class PythonController : MonoBehaviour
 
         SliderUpdateManager.OnSettingsChangedRequest += ApplySceneSettings;
         SceneSettingsUI.OnSceneUILoaded += GetAllObjectData;
+        KeyframeComponent.OnKeyframeToggleClicked += OnKeyframeToggleClicked;
+        
         OnObjectDataRequested += UpdateSettingsOnObjectDataReceived;
     }
 
@@ -61,6 +65,8 @@ public class PythonController : MonoBehaviour
         _processManager.OnLineReceived -= OnLineReceived;
         SliderUpdateManager.OnSettingsChangedRequest -= ApplySceneSettings;
         SceneSettingsUI.OnSceneUILoaded -= GetAllObjectData;
+        KeyframeComponent.OnKeyframeToggleClicked -= OnKeyframeToggleClicked;
+        
         OnObjectDataRequested -= UpdateSettingsOnObjectDataReceived;
     }
 
@@ -126,6 +132,7 @@ public class PythonController : MonoBehaviour
     public void SetRequestedRenderAnimation(int index)
     {
         settings.selected_anim = index;
+        settings.selected_anim_skip_keyframes.Clear();
         RenderSingleAnimation();
     }
 
@@ -578,6 +585,17 @@ public class PythonController : MonoBehaviour
         }
     }
 
+    private AnimationClip CreateAnimationClip(string jsonResponse)
+    {
+        var message = Utils.GetJsonMessageResponse(jsonResponse);
+        var spritesheetPath = message["output_path"]!.ToObject<string>();
+        var columns = message["columns"]!.ToObject<int>();
+        var rows = message["rows"]!.ToObject<int>();
+        var frameCount = message["frame_count"]!.ToObject<int>();
+        
+        return AnimationClipGenerator.CreateAnimationClip(spritesheetPath, settings.fps, columns, rows, frameCount);
+    }
+
     private async void RenderSingleAnimation()
     {
         try
@@ -595,14 +613,9 @@ public class PythonController : MonoBehaviour
                 return;
             }
 
-            var message = Utils.GetJsonMessageResponse(response);
-            var spritesheetPath = message["output_path"]!.ToObject<string>();
-            var columns = message["columns"]!.ToObject<int>();
-            var rows = message["rows"]!.ToObject<int>();
-            var frameCount = message["frame_count"]!.ToObject<int>();
-
-            var anim = AnimationClipGenerator.CreateAnimationClip(spritesheetPath, settings.fps, columns, rows, frameCount);
+            var anim = CreateAnimationClip(response);
             OnAnimationClipGenerated?.Invoke(anim);
+            _currentAnim = anim;
             ConsoleLog.ProcessLog($"UITE ANIMATION {anim}");
         }
         catch (Exception e)
@@ -613,5 +626,26 @@ public class PythonController : MonoBehaviour
         {
             OnActionFinish?.Invoke("Render single anim");
         }
+    }
+
+    private void OnKeyframeToggleClicked(string animName, int frameIndex, bool value)
+    {
+        if (!settings.selected_anim_skip_keyframes.TryGetValue(animName, out var toggleList))
+        {
+            toggleList = new();
+            settings.selected_anim_skip_keyframes[animName] = toggleList;
+        }
+        
+        while (toggleList.Count <= frameIndex)
+            toggleList.Add(false);
+        
+        toggleList[frameIndex] = value;
+        RegenerateAnimationClip(toggleList);
+    }
+
+    private void RegenerateAnimationClip(List<bool> toggleList)
+    {
+        var anim = AnimationClipGenerator.RebuildClipSkippingKeyframes(_currentAnim, toggleList);
+        OnAnimationClipWithSkipsGenerated?.Invoke(anim);
     }
 }
