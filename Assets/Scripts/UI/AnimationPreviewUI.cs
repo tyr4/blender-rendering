@@ -5,6 +5,10 @@ using UnityEngine;
 
 public class AnimationPreviewUI : MonoBehaviour
 {
+    [Header("Helper text stuff")]
+    [SerializeField] private GameObject helperText;
+    [SerializeField] private GameObject containerObject;
+    
     [Header("Prefabs")]
     [SerializeField] private GameObject spacerPrefab;
     [SerializeField] private GameObject timestampPrefab;
@@ -38,6 +42,8 @@ public class AnimationPreviewUI : MonoBehaviour
     private AnimationClip _currentClip;
     private float _clipLength;
     private float _frameRate;
+
+    private bool _triggeredByZoom;
     
     private List<KeyframeEntry> _keyframeEntries = new();
     private List<KeyframeComponent> _spawnedKeyframes = new();
@@ -46,12 +52,32 @@ public class AnimationPreviewUI : MonoBehaviour
 
     private void Start()
     {
+        EnableHelperText();
+        
         PythonController.OnAnimationClipGenerated += OnAnimationClipGenerated;
+     
+        PythonController.OnSceneLoaded += EnableHelperText;
+        PythonController.OnFbxLoaded += EnableHelperText;
     }
 
     private void OnDestroy()
     {
-        PythonController.OnAnimationClipGenerated -= OnAnimationClipGenerated;
+        PythonController.OnAnimationClipGenerated -= OnAnimationClipGenerated;     
+        
+        PythonController.OnSceneLoaded -= EnableHelperText;
+        PythonController.OnFbxLoaded -= EnableHelperText;
+    }
+
+    private void EnableHelperText()
+    {
+        containerObject.SetActive(false);
+        helperText.SetActive(true);
+    }
+
+    private void DisableHelperText()
+    {
+        containerObject.SetActive(true);
+        helperText.SetActive(false);
     }
 
     public void OnAnimationClipGenerated(AnimationClip clip)
@@ -59,7 +85,9 @@ public class AnimationPreviewUI : MonoBehaviour
         _currentClip = clip;
         _clipLength = clip.length;
         _frameRate = clip.frameRate;
+        
         Clear();
+        DisableHelperText();
         
 #if UNITY_EDITOR
         var binding = new EditorCurveBinding
@@ -80,7 +108,7 @@ public class AnimationPreviewUI : MonoBehaviour
         Rebuild();
     }
 
-    public void Rebuild()
+    private void Rebuild()
     {
         int frameIndex = 0;
         
@@ -103,6 +131,7 @@ public class AnimationPreviewUI : MonoBehaviour
 
         RebuildRuler();
         UpdateContentWidth();
+        ReapplyTogglesAfterGeneration();
     }
 
     private void RebuildRuler()
@@ -185,6 +214,8 @@ public class AnimationPreviewUI : MonoBehaviour
 
     public void ChangeSizeConstraints(float spacerValue, float itemWidthValue, float itemHeightValue)
     {
+        _triggeredByZoom = true;
+        
         pixelsPerSecond = Mathf.Clamp(pixelsPerSecond + spacerValue, pixelsPerSecondMin, pixelsPerSecondMax);
         Debug.Log("pixelsPerSecond: " + pixelsPerSecond);
 
@@ -195,6 +226,8 @@ public class AnimationPreviewUI : MonoBehaviour
         
         if (_currentClip == null) return;
         OnAnimationClipGenerated(_currentClip);
+
+        _triggeredByZoom = false;
     }
 
     private void PlaceAtTime(RectTransform rt, float time)
@@ -206,9 +239,31 @@ public class AnimationPreviewUI : MonoBehaviour
 
     private void ReapplyTogglesAfterGeneration()
     {
-        foreach (var go in _spawnedAll)
+        var toggleList = PythonController.Instance.GetCurrentAnimationSkipDict();
+        if (toggleList == null) return;
+
+        Debug.Log($"AM INTRAT IN REAPPLY TOGGLES WITH {toggleList.Count} toggles and {_keyframeEntries.Count} objects");
+        for (int i = 0; i < _spawnedKeyframes.Count; i++)
         {
-            // if (go.isi)
+            var kfInstance = _spawnedKeyframes[i];
+
+            bool toggle;
+            if (i < toggleList.Count)
+            {
+                toggle = toggleList[i];
+            }
+            else break;
+
+            kfInstance.ReapplyToggle(toggle);
         }
+        
+        // trigger an animation clip rebuild
+#if UNITY_EDITOR
+        if (_triggeredByZoom) return;
+        EditorApplication.delayCall += () =>
+        {
+            _spawnedKeyframes[0].OnClick(toggleList[0]);
+        };
+#endif
     }
 }

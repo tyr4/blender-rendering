@@ -264,7 +264,7 @@ def clean_anim_files(settings: dict):
     for file in files:
         os.remove(path + file)
 
-def save_spritesheet(settings: dict, output_name: str, total_frames: int):
+def save_spritesheet(settings: dict, output_name: str, total_frames: int, raw_anim_name: str = None) -> dict:
     render_path = settings["render_temp_output_path"]
     render_name = settings["render_temp_output_name"]
 
@@ -278,10 +278,16 @@ def save_spritesheet(settings: dict, output_name: str, total_frames: int):
 
     sheet = Image.new("RGBA", (columns * frame_width, rows * frame_height))
 
+    position_index = 0
     for i, img in enumerate(images):
-        x = (i % columns) * frame_width
-        y = (i // columns) * frame_height
+        if should_skip_anim_frame(settings, raw_anim_name, i):
+            continue
+            
+        x = (position_index % columns) * frame_width
+        y = (position_index // columns) * frame_height
+        
         sheet.paste(img, (x, y))    
+        position_index += 1
 
     output_path = os.path.join(settings["spritesheet_output_path"], output_name)
     sheet.save(output_path)
@@ -292,16 +298,16 @@ def save_spritesheet(settings: dict, output_name: str, total_frames: int):
             "frame_count": total_frames
            } 
 
-# def should_skip_anim_frame(settings: dict, key: str | None, frame_index) -> bool:
-#     if key is None:
-#         return False
-#     
-#     keyframes = settings["selected_anim_skip_keyframes"]
-#     
-#     if (value := keyframes.get(key, None)) is not None:
-#         return value[frame_index]
-#     
-#     return False
+def should_skip_anim_frame(settings: dict, key: str | None, frame_index) -> bool:
+    if key is None:
+        return False
+
+    keyframes = settings["selected_anim_skip_keyframes"]
+
+    if (value := keyframes.get(key, None)) is not None and frame_index < len(value):
+        return value[frame_index]
+        
+    return False
 
 def render_single_frame(settings: dict,
                         anim_index: int | None = None,
@@ -432,25 +438,34 @@ def center_object_to_camera(root_obj, camera, move_obj):
 def sanitize_filename(name: str) -> str:
     return re.sub(r'[\\/:*?"<>|]', '_', name)
 
-def run_calculator(settings):
+def run_calculator(settings, filter_selected_anims: bool = False):
     # init_scene(settings)
     apply_settings_to_scene(settings)
 
     step = 360 / settings["directions"]
     obj = get_main_parent_object()
     anims = list(bpy.data.actions)
+    
+    anim_dict: dict = settings["animation_dict"]
+    debug_log(anim_dict)
 
     for anim in range(len(anims)):
+        current_anim = anims[anim].name
+        
+        if filter_selected_anims and ((value := anim_dict.get(current_anim, None)) is False):
+            continue
+        
         for i in range(settings["directions"]):
             parent_rotation = (0, 0, i * step)
             final_rotation = tuple(a + b for a, b in zip(settings["starting_rotation"], parent_rotation))
             debug_log(f"degrees {i*step} rotation {final_rotation}")
             
             change_object_rotation(obj, vector3_rotation=final_rotation)
-            output_name = sanitize_filename(anims[anim].name) + f"_{int(i * step)}.png"
+            sanitized_filename = sanitize_filename(anims[anim].name)
+            output_name = sanitized_filename + f"_{int(i * step)}.png"
 
             frames = render_animation(settings=settings, anim_index=anim)
-            save_spritesheet(settings=settings, output_name=output_name, total_frames=frames)
+            save_spritesheet(settings=settings, output_name=output_name, total_frames=frames, raw_anim_name=sanitized_filename)
 
         clean_anim_files(settings)
 
@@ -575,17 +590,12 @@ def handle_command(settings: dict):
             return send_response({"status": "success", "message": result}, settings)
             
         elif cmd == "generate_all_spritesheets":
-            run_calculator(settings)
+            
             return send_response({"status": "success", "message": "generated all spritesheets"}, settings)
             
         elif cmd == "generate_selected_spritesheets":
             # key anim string, value enabled/disabled
-            anim_dict: dict = settings["animation_dict"]
-            debug_log(anim_dict)
-            
-            for i, (key, value) in enumerate(anim_dict.items()):
-                if value is True:
-                    render_animation(settings, anim_index=i)
+            run_calculator(settings, filter_selected_anims=True)
 
             return send_response({"status": "success", "message": "finished rendering selected animations"}, settings)
         
@@ -655,8 +665,9 @@ settings_dict = {"current_command": "",
 
 
 if __name__ == "__main__":
+    init_scene(settings_dict, load_fbx=True)
     main()
-    # init_scene(settings_dict, load_fbx=True)
+    
     # render_animation(settings_dict, anim_index=1)
     # init_scene(settings_dict, load_fbx=True)
     # render_single_frame(settings_dict)

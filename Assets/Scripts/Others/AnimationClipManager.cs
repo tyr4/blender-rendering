@@ -7,11 +7,13 @@ public class AnimationClipManager : MonoBehaviour
 {
     [SerializeField] private GameObject targetObject;
 
-    private string _controllerSavePath;
-    
     private void Start()
     {
-        _controllerSavePath = Application.dataPath + "/AnimationClips/";
+        if (!AssetDatabase.IsValidFolder("Assets/AnimationClips"))
+        {
+            AssetDatabase.CreateFolder("Assets", "AnimationClips");
+        }
+        
         PythonController.OnAnimationClipGenerated += AssignClipToGameObject;
         PythonController.OnAnimationClipWithSkipsGenerated += AssignClipToGameObject;
     }
@@ -25,7 +27,7 @@ public class AnimationClipManager : MonoBehaviour
     private void AssignClipToGameObject(AnimationClip clip)
     {
         ConsoleLog.ProcessLog("am intrat in assign clip to gameobject");
-        ConsoleLog.ProcessLog($"save path {_controllerSavePath}");
+        // ConsoleLog.ProcessLog($"save path {_controllerSavePath}");
         
         var animator = targetObject.GetComponent<Animator>();
         if (animator == null)
@@ -37,7 +39,14 @@ public class AnimationClipManager : MonoBehaviour
 
         if (controller == null)
         {
-            controller = AnimatorController.CreateAnimatorControllerAtPath(_controllerSavePath);
+            string controllerPath = $"Assets/AnimationClips/{targetObject.name}.controller";
+
+            controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
+            if (controller == null)
+            {
+                controller = AnimatorController.CreateAnimatorControllerAtPath(controllerPath);
+            }
+
             animator.runtimeAnimatorController = controller;
         }
         

@@ -20,6 +20,7 @@ public class PythonController : MonoBehaviour
     private AnimationClip _currentAnim;
     
     private string _settingsPath;
+    private const string DefaultScenePath = @"\Default Scene\empty_scene.blend";
 
     private readonly SemaphoreSlim _commandLock = new(1, 1);
     
@@ -44,6 +45,10 @@ public class PythonController : MonoBehaviour
         
         _settingsManager = new SettingsManager();
         settings = _settingsManager.Load();
+        
+        // refresh states after they get saved between sessions
+        settings.animation_dict.Clear();
+        settings.selected_anim_skip_keyframes.Clear();
     }
     
     private void Start()
@@ -102,8 +107,6 @@ public class PythonController : MonoBehaviour
         }
     }
     
-    // TODO: separate this below -----------------------------------------
-    
     private void SetFilters(string categoryName, params string[] extensions)
     {
         // FileBrowser.SetFilters( true, new FileBrowser.Filter( "Scenes", ".blend" ));
@@ -132,8 +135,23 @@ public class PythonController : MonoBehaviour
     public void SetRequestedRenderAnimation(int index)
     {
         settings.selected_anim = index;
-        settings.selected_anim_skip_keyframes.Clear();
+        // settings.selected_anim_skip_keyframes.Clear();
         RenderSingleAnimation();
+    }
+
+    public List<bool> GetCurrentAnimationSkipDict()
+    {
+        if (_currentAnim == null) return null;
+        
+        return settings.selected_anim_skip_keyframes.GetValueOrDefault(_currentAnim.name);
+    }
+
+    public void LoadDefaultSceneButton()
+    {
+        var path = Application.streamingAssetsPath + DefaultScenePath;
+        settings.scene_path = path;
+        
+        LoadScene();
     }
 
     public void PickSceneButtonWrapper()
@@ -349,6 +367,7 @@ public class PythonController : MonoBehaviour
     public void ExportAllAnimationsButton()
     {
         GenerateAllSpritesheets();
+        // GenerateAllAnimations();
     }
     
     public void ExportSelectedAnimationsButton()
@@ -614,8 +633,9 @@ public class PythonController : MonoBehaviour
             }
 
             var anim = CreateAnimationClip(response);
-            OnAnimationClipGenerated?.Invoke(anim);
             _currentAnim = anim;
+            
+            OnAnimationClipGenerated?.Invoke(anim);
             ConsoleLog.ProcessLog($"UITE ANIMATION {anim}");
         }
         catch (Exception e)
@@ -645,7 +665,27 @@ public class PythonController : MonoBehaviour
 
     private void RegenerateAnimationClip(List<bool> toggleList)
     {
-        var anim = AnimationClipGenerator.RebuildClipSkippingKeyframes(_currentAnim, toggleList);
+        Debug.Log($"AM INTRAT IN REGENERATE CLIP {toggleList.Count}");
+    
+        AnimationClip anim;
+        try
+        {
+            anim = AnimationClipGenerator.RebuildClipSkippingKeyframes(_currentAnim, toggleList);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"RebuildClipSkippingKeyframes threw: {e}");
+            return;
+        }
+
+        if (anim == null)
+        {
+            Debug.LogError("RebuildClipSkippingKeyframes returned null");
+            return;
+        }
+    
+        Debug.Log($"rebuilt clip ok: {anim.name}, keys: (check inside)");
+        Debug.Log($"OnAnimationClipWithSkipsGenerated subscriber count: {OnAnimationClipWithSkipsGenerated?.GetInvocationList().Length ?? 0}");
         OnAnimationClipWithSkipsGenerated?.Invoke(anim);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,14 +18,12 @@ public class KeyframeComponent : MonoBehaviour
     
     private int _frameIndex;
     private string _animName;
-    private Color _initialColor;
+    private Color _initialColor = Color.white;
 
     public static event Action<string, int, bool> OnKeyframeToggleClicked;
     
     private void Start()
     {
-        _initialColor = spriteImage.color;
-        
         keyframeImage.preserveAspect = true;
         spriteImage.preserveAspect = true;
         
@@ -71,8 +70,14 @@ public class KeyframeComponent : MonoBehaviour
 
     public void OnClick(bool value)
     {
-        OnKeyframeToggleClicked?.Invoke(_animName, _frameIndex, value);
-        
         spriteImage.color = value ? toggledColor : _initialColor;
+        
+        OnKeyframeToggleClicked?.Invoke(_animName, _frameIndex, value);
+    }
+
+    public void ReapplyToggle(bool value)
+    {
+        spriteImage.color = value ? toggledColor : _initialColor;
+        toggle.SetIsOnWithoutNotify(value);
     }
 }
