@@ -4,7 +4,6 @@ import re
 import sys
 import traceback
 import datetime
-from ast import Continue
 
 import bpy
 from PIL import Image, ImageDraw
@@ -15,7 +14,8 @@ addons_core_path = os.path.join(bpy_package_dir, "scripts", "addons_core")
 
 if addons_core_path not in sys.path:
     sys.path.append(addons_core_path)
-    
+
+# noinspection PyUnresolvedReferences
 import io_scene_fbx.import_fbx as import_fbx_module
 
 _original_blen_read_light = import_fbx_module.blen_read_light
@@ -90,6 +90,7 @@ def debug_scene():
 def get_all_object_data(settings: dict):
     data = {"camera_orthographic_scale": 0, 
             "camera_position": [],
+            "camera_rotation": [],
             "starting_rotation": [],
             "parent_object_position": [],
             "parent_object_rotation": [],
@@ -106,6 +107,8 @@ def get_all_object_data(settings: dict):
     
     # cast because they are mathutils.Vector
     data["camera_position"] = list(camera.location)
+    data["camera_rotation"] = [math.degrees(a) for a in camera.rotation_euler]
+    
     data["starting_rotation"] = list(starting_rotation) if starting_rotation is not None else [0.0, 0.0, 0.0]
     
     data["parent_object_position"] = list(parent.location)
@@ -133,7 +136,13 @@ def load_fbx_model(scene_path: str):
 def get_armature_object():
     armatures = [obj for obj in bpy.data.objects if obj.type == 'ARMATURE']
 
-    return armatures[0]
+    if armatures:
+        return armatures[0]
+    
+    # fallback for non-animated objects
+    # assume the object is parented to reposition obj for this to work
+    reposition_obj = get_reposition_object()
+    return reposition_obj.children[0]
 
 def delete_armature_object():
     reposition = get_reposition_object()
@@ -295,7 +304,7 @@ def save_spritesheet(settings: dict, output_name: str, total_frames: int, raw_an
     return {"output_path": output_path,
             "columns": columns,
             "rows": rows,
-            "frame_count": total_frames
+            "frame_count": position_index
            } 
 
 def should_skip_anim_frame(settings: dict, key: str | None, frame_index) -> bool:
@@ -351,100 +360,91 @@ def add_borders(image_path: str, output_path: str, border_size: int = 2, border_
 
     img.save(output_path)
 
-def mat4_mul_point(matrix_world, point):
-    """
-    matrix_world: Blender's matrix_world (still a bpy/mathutils object,
-                   but we only ever READ from it via indexing - no
-                   Vector/Matrix construction required)
-    point: (x, y, z) tuple
-    """
-    x, y, z = point
-    row0 = matrix_world[0]
-    row1 = matrix_world[1]
-    row2 = matrix_world[2]
-
-    out_x = row0[0]*x + row0[1]*y + row0[2]*z + row0[3]
-    out_y = row1[0]*x + row1[1]*y + row1[2]*z + row1[3]
-    out_z = row2[0]*x + row2[1]*y + row2[2]*z + row2[3]
-
-    return (out_x, out_y, out_z)
+def _dot(a, b):
+    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]
 
 
-def mat4_mul_direction(matrix_world, direction):
-    """Same as above but ignores translation - for rotating a direction vector."""
-    x, y, z = direction
-    row0 = matrix_world[0]
-    row1 = matrix_world[1]
-    row2 = matrix_world[2]
-
-    out_x = row0[0]*x + row0[1]*y + row0[2]*z
-    out_y = row1[0]*x + row1[1]*y + row1[2]*z
-    out_z = row2[0]*x + row2[1]*y + row2[2]*z
-
-    return (out_x, out_y, out_z)
+def _normalize(v):
+    length = math.sqrt(_dot(v, v)) or 1.0
+    return (v[0]/length, v[1]/length, v[2]/length)
 
 
-def mat4_invert(matrix_world):
-    return matrix_world.inverted()
+def mat4_mul_point(m, p):
+    x, y, z = p
+    return (
+        m[0][0]*x + m[0][1]*y + m[0][2]*z + m[0][3],
+        m[1][0]*x + m[1][1]*y + m[1][2]*z + m[1][3],
+        m[2][0]*x + m[2][1]*y + m[2][2]*z + m[2][3],
+    )
 
 
-def get_world_bounds_center(root_obj):
+def get_camera_axes(camera):
+    """Camera's local X, Y axes and position in world space (scale removed)."""
+    m = camera.matrix_world
+    ax = _normalize((m[0][0], m[1][0], m[2][0]))  # column 0 = camera right
+    ay = _normalize((m[0][1], m[1][1], m[2][1]))  # column 1 = camera up
+    pos = (m[0][3], m[1][3], m[2][3])
+    return ax, ay, pos
+
+
+def get_camera_space_center_xy(root_obj, ax, ay, cam_pos):
     depsgraph = bpy.context.evaluated_depsgraph_get()
-    corners = []
+    xs, ys = [], []
+
+    def add_world_point(w):
+        d = (w[0]-cam_pos[0], w[1]-cam_pos[1], w[2]-cam_pos[2])
+        xs.append(_dot(d, ax))
+        ys.append(_dot(d, ay))
 
     def collect(obj):
         eval_obj = obj.evaluated_get(depsgraph)
         if eval_obj.type == 'MESH' and eval_obj.data:
+            mw = eval_obj.matrix_world
             for c in eval_obj.bound_box:
-                corners.append(mat4_mul_point(eval_obj.matrix_world, tuple(c)))
+                add_world_point(mat4_mul_point(mw, (c[0], c[1], c[2])))
         for child in obj.children:
             collect(child)
 
     collect(root_obj)
 
-    if not corners:
-        t = root_obj.matrix_world.translation
-        return (t[0], t[1], t[2])
+    if not xs:
+        t = root_obj.matrix_world
+        add_world_point((t[0][3], t[1][3], t[2][3]))
 
-    xs = [c[0] for c in corners]
-    ys = [c[1] for c in corners]
-    zs = [c[2] for c in corners]
-
-    return (
-        (min(xs) + max(xs)) / 2,
-        (min(ys) + max(ys)) / 2,
-        (min(zs) + max(zs)) / 2,
-    )
+    return (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
 
 
-def center_object_to_camera(root_obj, camera, move_obj):
-    bounds_center = get_world_bounds_center(root_obj)
+def center_object_to_camera():
+    bpy.context.view_layer.update()  # make sure the new camera rotation is applied
 
-    cam_inv = mat4_invert(camera.matrix_world)
-    cx, cy, cz = mat4_mul_point(cam_inv, bounds_center)
+    root_obj = get_armature_object()
+    camera = get_camera()
+    move_obj = get_reposition_object()
 
-    offset_cam_space = (-cx, -cy, 0.0)
-    ox, oy, oz = mat4_mul_direction(camera.matrix_world, offset_cam_space)
+    ax, ay, cam_pos = get_camera_axes(camera)
+    cx, cy = get_camera_space_center_xy(root_obj, ax, ay, cam_pos)
 
-    world_pos = move_obj.matrix_world.translation
-    move_obj.matrix_world.translation = (
-        world_pos[0] + ox,
-        world_pos[1] + oy,
-        world_pos[2] + oz,
-    )
+    # Move by (-cx, -cy) in the camera's plane, expressed in world space
+    ox = -cx*ax[0] - cy*ay[0]
+    oy = -cx*ax[1] - cy*ay[1]
+    oz = -cx*ax[2] - cy*ay[2]
+
+    t = move_obj.matrix_world.translation
+    move_obj.matrix_world.translation = (t[0] + ox, t[1] + oy, t[2] + oz)
 
     bpy.context.view_layer.update()
 
 def sanitize_filename(name: str) -> str:
     return re.sub(r'[\\/:*?"<>|]', '_', name)
 
-def run_calculator(settings, filter_selected_anims: bool = False):
+def run_calculator(settings, filter_frameskip_selected_anims: bool = False, filter_toggled_anims: bool = False):
     # init_scene(settings)
     apply_settings_to_scene(settings)
 
     step = 360 / settings["directions"]
     obj = get_main_parent_object()
     anims = list(bpy.data.actions)
+    spritesheet_results = []
     
     anim_dict: dict = settings["animation_dict"]
     debug_log(anim_dict)
@@ -452,22 +452,30 @@ def run_calculator(settings, filter_selected_anims: bool = False):
     for anim in range(len(anims)):
         current_anim = anims[anim].name
         
-        if filter_selected_anims and ((value := anim_dict.get(current_anim, None)) is False):
+        if filter_toggled_anims and anim_dict.get(current_anim, False):
+            continue
+        
+        if filter_frameskip_selected_anims and ((value := anim_dict.get(current_anim, None)) is False):
             continue
         
         for i in range(settings["directions"]):
             parent_rotation = (0, 0, i * step)
-            final_rotation = tuple(a + b for a, b in zip(settings["starting_rotation"], parent_rotation))
+            final_rotation = tuple(a + b for a, b in zip(settings["parent_object_rotation"], parent_rotation))
             debug_log(f"degrees {i*step} rotation {final_rotation}")
             
             change_object_rotation(obj, vector3_rotation=final_rotation)
+            center_object_to_camera() # fix rotation position offset
+            
             sanitized_filename = sanitize_filename(anims[anim].name)
             output_name = sanitized_filename + f"_{int(i * step)}.png"
 
             frames = render_animation(settings=settings, anim_index=anim)
-            save_spritesheet(settings=settings, output_name=output_name, total_frames=frames, raw_anim_name=sanitized_filename)
-
+            result = save_spritesheet(settings=settings, output_name=output_name, total_frames=frames, raw_anim_name=sanitized_filename)
+            spritesheet_results.append(result)
+            
         clean_anim_files(settings)
+    
+    return spritesheet_results
 
 def validate_settings(settings: dict):
     required_fields = ("scene_path", "render_temp_output_path", "render_temp_output_name", "spritesheet_output_path", "directions")
@@ -491,11 +499,14 @@ def apply_settings_to_scene(settings: dict):
     # camera settings
     camera_pos = settings["camera_position"]
     camera_ortho_scale = settings["camera_orthographic_scale"]
+    camera_rotation = settings["camera_rotation"]
 
     if camera_pos is not None:
         change_object_position(camera, camera_pos)
     if camera_ortho_scale is not None:
         change_camera_orthographic_size(camera_ortho_scale)
+    if camera_rotation is not None:
+        change_object_rotation(camera, camera_rotation)
 
     # reposition object settings
     reposition_position = settings["reposition_object_position"]
@@ -578,10 +589,7 @@ def handle_command(settings: dict):
             return send_response({"status": "success", "message": filepath}, settings)
         
         elif cmd == "center_to_camera":
-            armature = get_armature_object()
-            camera = get_camera()
-            reposition_obj = get_reposition_object()
-            center_object_to_camera(armature, camera, reposition_obj)
+            center_object_to_camera()
             
         elif cmd == "get_all_object_data":
             result = get_all_object_data(settings)
@@ -589,15 +597,16 @@ def handle_command(settings: dict):
             
             return send_response({"status": "success", "message": result}, settings)
             
-        elif cmd == "generate_all_spritesheets":
+        elif cmd == "generate_all_animations":
+            spritesheet_list = run_calculator(settings)
             
-            return send_response({"status": "success", "message": "generated all spritesheets"}, settings)
+            return send_response({"status": "success", "message": spritesheet_list}, settings)
             
-        elif cmd == "generate_selected_spritesheets":
+        elif cmd == "generate_selected_animations":
             # key anim string, value enabled/disabled
-            run_calculator(settings, filter_selected_anims=True)
+            spritesheet_list = run_calculator(settings, filter_frameskip_selected_anims=True)
 
-            return send_response({"status": "success", "message": "finished rendering selected animations"}, settings)
+            return send_response({"status": "success", "message": spritesheet_list}, settings)
         
         elif cmd == "render_single_anim":
             animations = bpy.data.actions
@@ -665,7 +674,7 @@ settings_dict = {"current_command": "",
 
 
 if __name__ == "__main__":
-    init_scene(settings_dict, load_fbx=True)
+    # init_scene(settings_dict, load_fbx=True)
     main()
     
     # render_animation(settings_dict, anim_index=1)

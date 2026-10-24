@@ -1,14 +1,12 @@
 ﻿#if UNITY_EDITOR
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.U2D.Sprites;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public static class AnimationClipGenerator
 {
-    private static string ToUnityRelativePath(string absolutePath)
+    public static string ToUnityRelativePath(string absolutePath)
     {
         string normalizedAbsolute = absolutePath.Replace('\\', '/');
         string dataPath = Application.dataPath; // already forward-slash
@@ -27,8 +25,17 @@ public static class AnimationClipGenerator
         var importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
         if (importer == null)
         {
-            Debug.LogError($"No texture importer found at {assetPath}");
-            return null;
+            // try to refresh the project files first
+            ConsoleLog.ProcessLog($"No texture importer found at {assetPath}, refreshing Asset Database...");
+            AssetDatabase.Refresh();
+            importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+
+            // now it would actually not exist
+            if (importer == null)
+            {
+                Debug.LogError($"No texture importer found at {assetPath}");
+                return null;
+            }
         }
 
         importer.textureType = TextureImporterType.Sprite;
@@ -38,7 +45,6 @@ public static class AnimationClipGenerator
         
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
         
-        // replace this part with actual x/y passed
         int frameWidth = texture.width / columns;
         int frameHeight = texture.height / rows;
 
@@ -130,6 +136,7 @@ public static class AnimationClipGenerator
         
         AssetDatabase.CreateAsset(clip, savePath);
         AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
         
         return clip;
     }
@@ -216,6 +223,7 @@ public static class AnimationClipGenerator
         var savePath = sourcePath.Replace(".anim", "_skipped.anim");
         AssetDatabase.CreateAsset(newClip, savePath);
         AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
 
         return newClip;
     }

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class ButtonManager : MonoBehaviour
 {
+    [SerializeField] private Button loadDefaultScene;
     [SerializeField] private Button loadScene;
     [SerializeField] private Button loadFbx;
     [SerializeField] private Button loadSceneFbx;
@@ -17,9 +18,12 @@ public class ButtonManager : MonoBehaviour
     [SerializeField] private Button centerArmature;
     [SerializeField] private Button exportSelectedAnims;
     [SerializeField] private Button exportAllAnims;
-    // [SerializeField] private Button ;
+    
+    [SerializeField] private Button saveAnimation;
+    [SerializeField] private Button resetKeyframes;
 
     private Dictionary<Button, bool> _savedState = new();
+    private List<Button> _buttons = new();
     private bool _hasBegunAction;
 
     private void Start()
@@ -35,6 +39,20 @@ public class ButtonManager : MonoBehaviour
         PythonController.OnActionFinish += OnActionFinish;
     }
 
+    private void AddButtonsToList()
+    {
+        _buttons = new List<Button>
+        {
+            loadDefaultScene, loadScene, loadFbx, loadSceneFbx,
+            
+            reloadScene, reloadFbx, reloadSceneFbx,
+            
+            centerArmature, exportSelectedAnims, exportAllAnims,
+            
+            saveAnimation, resetKeyframes
+        };
+    }
+
     private void OnDestroy()
     {
         PythonController.OnSceneLoaded -= OnLoadScene;
@@ -48,64 +66,28 @@ public class ButtonManager : MonoBehaviour
 
     private void BuildDictionary()
     {
-        _savedState.Add(loadScene, loadScene.interactable);
-        _savedState.Add(loadFbx, loadFbx.interactable);
-        _savedState.Add(loadSceneFbx, loadSceneFbx.interactable);
+        _savedState.Clear();
         
-        _savedState.Add(reloadScene, reloadScene.interactable);
-        _savedState.Add(reloadFbx, reloadFbx.interactable);
-        _savedState.Add(reloadSceneFbx, reloadSceneFbx.interactable);
-        
-        _savedState.Add(centerArmature, centerArmature.interactable);
-        
-        _savedState.Add(exportSelectedAnims, exportSelectedAnims.interactable);
-        _savedState.Add(exportAllAnims, exportAllAnims.interactable);
+        foreach (var button in _buttons)
+            _savedState.Add(button, button.interactable);
     }
 
     private void UpdateButtonState()
     {
-        _savedState[loadScene] = loadScene.interactable;
-        _savedState[loadFbx] = loadFbx.interactable;
-        _savedState[loadSceneFbx] = loadSceneFbx.interactable;
-        
-        _savedState[reloadScene] = reloadScene.interactable;
-        _savedState[reloadFbx] = reloadFbx.interactable;
-        _savedState[reloadSceneFbx] = reloadSceneFbx.interactable;
-        
-        _savedState[centerArmature] = centerArmature.interactable;
-        _savedState[exportSelectedAnims] = exportSelectedAnims.interactable;
-        _savedState[exportAllAnims] = exportAllAnims.interactable;
+        foreach (var button in _buttons)
+            _savedState[button] = button.interactable;
     }
 
     private void ToggleAll(bool value)
     {
-        loadScene.interactable = value;
-        loadFbx.interactable = value;
-        loadSceneFbx.interactable = value;
-        
-        reloadScene.interactable = value;
-        reloadFbx.interactable = value;
-        reloadSceneFbx.interactable = value;
-        
-        centerArmature.interactable = value;
-        
-        exportSelectedAnims.interactable = value;
-        exportAllAnims.interactable = value;
+        foreach (var button in _buttons)
+            button.interactable = value;
     }
 
     private void RestoreState()
     {
-        loadScene.interactable = _savedState[loadScene];
-        loadFbx.interactable = _savedState[loadFbx];
-        loadSceneFbx.interactable = _savedState[loadSceneFbx];
-        
-        reloadScene.interactable = _savedState[reloadScene];
-        reloadFbx.interactable = _savedState[reloadFbx];
-        reloadSceneFbx.interactable = _savedState[reloadSceneFbx];
-        
-        centerArmature.interactable = _savedState[centerArmature];
-        exportSelectedAnims.interactable = _savedState[exportSelectedAnims];
-        exportAllAnims.interactable = _savedState[exportAllAnims];
+        foreach (var button in _buttons)
+            button.interactable = _savedState[button];
     }
 
     private void OnActionBegin(string actionName)
@@ -129,9 +111,12 @@ public class ButtonManager : MonoBehaviour
 
     private void Init()
     {
+        AddButtonsToList(); // very important to do this first
+        
         ToggleAll(false);
         BuildDictionary();
-        
+
+        loadDefaultScene.interactable = true;
         loadScene.interactable = true;
         loadSceneFbx.interactable = true;
         
@@ -142,6 +127,7 @@ public class ButtonManager : MonoBehaviour
     {
         ToggleAll(false);
 
+        loadDefaultScene.interactable = true;
         loadSceneFbx.interactable = true;
         loadScene.interactable = true;
         loadFbx.interactable = true;
@@ -159,34 +145,21 @@ public class ButtonManager : MonoBehaviour
         exportAllAnims.interactable = true;
         centerArmature.interactable = true;
         
-        Debug.Log(centerArmature.interactable + " " + " center armature");
         UpdateButtonState();
     }
 
     private void OnLoadFbx()
     {
         // _hasLoadedFbx = true;
-        Debug.Log("AM INTRAT IN LOADFBX");
-        
+
         reloadFbx.interactable = true;
         reloadSceneFbx.interactable = true;
         centerArmature.interactable = true;
         exportSelectedAnims.interactable = true;
         exportAllAnims.interactable = true;
+        saveAnimation.interactable = true;
+        resetKeyframes.interactable = true;
         
         UpdateButtonState();
     }
-    
-    /* TODO:
-     - X thread safe stdin/stdout
-     - X reenable buttons in logerror (to not cause a softlock)
-     - X (important) update sliders with scene values on load
-     - X make settings toggles work
-     - X settings edit section
-     - X console section (console manager with custom function to send output there)
-        -> color coded would be nice
-     - make export animations work correctly (do settings section before this)
-     - after the spritesheet is generated, render 1 animation in the preview or all of them
-        - return as json animation data -> fps specifically for the animationclip
-    */
 }

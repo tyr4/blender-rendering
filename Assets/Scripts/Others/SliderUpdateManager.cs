@@ -11,6 +11,7 @@ public class SliderUpdateManager : MonoBehaviour
     
     [SerializeField] private SliderValueUpdateInvoker cameraOrthographicScale;
     [SerializeField] private SliderPairValueUpdateInvoker cameraPosition;
+    [SerializeField] private SliderPairValueUpdateInvoker cameraRotation;
     [SerializeField] private SliderPairValueUpdateInvoker startingRotation;
     
     [SerializeField] private SliderPairValueUpdateInvoker parentObjectPosition;
@@ -39,6 +40,7 @@ public class SliderUpdateManager : MonoBehaviour
         cameraOrthographicScale.OnSliderSettled += ApplyCameraOrthographicScale;
         
         cameraPosition.OnSliderPairSettled += ApplyCameraPosition;
+        cameraRotation.OnSliderPairSettled += ApplyCameraRotation;
         
         startingRotation.OnSliderPairSettled += ApplyStartingRotation;
         
@@ -54,6 +56,10 @@ public class SliderUpdateManager : MonoBehaviour
         cameraPosition.BindOnSettingsChanged(() => PythonController.Instance.settings.camera_position,
                             v => PythonController.Instance.settings.camera_position = v);
         cameraPosition.BindOnToggleValueChanged(v => PythonController.Instance.snapshotToggles.camera_position = v);
+        
+        cameraRotation.BindOnSettingsChanged(() => PythonController.Instance.settings.camera_rotation,
+            v => PythonController.Instance.settings.camera_rotation = v);
+        cameraRotation.BindOnToggleValueChanged(v => PythonController.Instance.snapshotToggles.camera_rotation = v);
         
         startingRotation.BindOnSettingsChanged(() => PythonController.Instance.settings.starting_rotation,
             v => PythonController.Instance.settings.starting_rotation = v);
@@ -88,6 +94,7 @@ public class SliderUpdateManager : MonoBehaviour
         cameraOrthographicScale.OnSliderSettled -= ApplyCameraOrthographicScale;
         
         cameraPosition.OnSliderPairSettled -= ApplyCameraPosition;
+        cameraRotation.OnSliderPairSettled -= ApplyCameraRotation;
         
         startingRotation.OnSliderPairSettled -= ApplyStartingRotation;
         
@@ -102,6 +109,7 @@ public class SliderUpdateManager : MonoBehaviour
     {
         ChangeFloatValue(cameraOrthographicScale, data["camera_orthographic_scale"]);
         ChangeFloatValuePair(cameraPosition, data["camera_position"]);
+        ChangeFloatValuePair(cameraRotation, data["camera_rotation"]);
         
         ChangeFloatValuePair(startingRotation, data["starting_rotation"]);
         
@@ -165,6 +173,13 @@ public class SliderUpdateManager : MonoBehaviour
     private void ApplyCameraPosition(object value)
     {
         settings.camera_position = (float[])value;
+        
+        OnSettingsChangedRequest?.Invoke();
+    }
+
+    private void ApplyCameraRotation(object value)
+    {
+        settings.camera_rotation = (float[])value;
         
         OnSettingsChangedRequest?.Invoke();
     }

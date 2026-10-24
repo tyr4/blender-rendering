@@ -19,6 +19,7 @@ public class UserSettings
     public float fps { get; set; } = 24f;
     public float? camera_orthographic_scale { get; set; }
     public float[]? camera_position { get; set; }
+    public float[]? camera_rotation { get; set; }
     public float[]? starting_rotation { get; set; }
     public float[]? parent_object_position { get; set; }
     public float[]? parent_object_rotation { get; set; } 
@@ -47,6 +48,7 @@ public class UserSettings
         fps = other.fps;
         camera_orthographic_scale = other.camera_orthographic_scale;
         camera_position = (float[]?)other.camera_position?.Clone();
+        camera_rotation = (float[]?)other.camera_rotation?.Clone();
         starting_rotation = (float[]?)other.starting_rotation?.Clone();
         parent_object_position = (float[]?)other.parent_object_position?.Clone();
         parent_object_rotation = (float[]?)other.parent_object_rotation?.Clone();

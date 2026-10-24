@@ -7,4 +7,5 @@
     public bool parent_object_rotation { get; set; } 
     public bool reposition_object_position { get; set; } 
     public bool reposition_object_rotation { get; set; }
+    public bool camera_rotation { get; set; }
 }

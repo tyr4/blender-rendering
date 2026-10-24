@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using SimpleFileBrowser;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class PythonController : MonoBehaviour
 {
@@ -13,7 +16,7 @@ public class PythonController : MonoBehaviour
     private PythonProcessManager _processManager;
         
     private SettingsManager _settingsManager;
-    public UserSettings settings { get; set; }
+    public UserSettings settings { get; private set; }
     
     private UserSettings _snapshotSettings;
     public SnapshotToggles snapshotToggles { get; set; } = new();
@@ -37,6 +40,7 @@ public class PythonController : MonoBehaviour
     public static event Action OnRenderRequested;
     public static event Action<AnimationClip> OnAnimationClipGenerated;
     public static event Action<AnimationClip> OnAnimationClipWithSkipsGenerated;
+    public static event Action<List<AnimationClip>> OnBulkAnimationsFinished;
     public static event Action<Dictionary<string, JToken>> OnObjectDataRequested;
 
     private void Awake()
@@ -139,11 +143,20 @@ public class PythonController : MonoBehaviour
         RenderSingleAnimation();
     }
 
-    public List<bool> GetCurrentAnimationSkipDict()
+    public List<bool> GetCurrentAnimationSkipList()
     {
         if (_currentAnim == null) return null;
         
         return settings.selected_anim_skip_keyframes.GetValueOrDefault(_currentAnim.name);
+    }
+
+    public void SetAnimationSkipListToValue(bool value)
+    {
+        var list = GetCurrentAnimationSkipList();
+        if (list == null) return;
+
+        for (int i = 0; i < list.Count; i++)
+            list[i] = value;
     }
 
     public void LoadDefaultSceneButton()
@@ -256,8 +269,9 @@ public class PythonController : MonoBehaviour
             }
             
             var animations = await GetFbxAnimations();
-            if (animations.Count != 0) OnArmatureLoaded?.Invoke(animations);
+            BuildAnimationDictionary(animations);
             
+            if (animations.Count != 0) OnArmatureLoaded?.Invoke(animations);
             OnFbxLoaded?.Invoke();
         }
         catch (Exception e)
@@ -366,16 +380,16 @@ public class PythonController : MonoBehaviour
 
     public void ExportAllAnimationsButton()
     {
-        GenerateAllSpritesheets();
+        ExportAllAnimationsHandler();
         // GenerateAllAnimations();
     }
     
     public void ExportSelectedAnimationsButton()
     {
-        GenerateSelectedSpritesheets();
+        ExportSelectedAnimationsHandler();
     }
     
-    public async Task<List<string>> GetFbxAnimations()
+    private async Task<List<string>> GetFbxAnimations()
     {
         try
         {
@@ -510,6 +524,7 @@ public class PythonController : MonoBehaviour
     {
         settings.camera_orthographic_scale = data["camera_orthographic_scale"].ToObject<float>();
         settings.camera_position = data["camera_position"].ToObject<float[]>();
+        settings.camera_rotation = data["camera_rotation"].ToObject<float[]>();
         //
         settings.starting_rotation = data["starting_rotation"].ToObject<float[]>();
         
@@ -550,22 +565,58 @@ public class PythonController : MonoBehaviour
         return currentSettings;
     }
 
-    private async void GenerateAllSpritesheets()
+    private async Task<List<AnimationClip>> GenerateAnimationsAsync(JToken message)
+    {
+        List<AnimationClip> generatedClips = new();
+        var list = message.ToObject<List<JToken>>();
+            
+#if UNITY_EDITOR
+        // make sure the editor knows the spritesheets are there
+        AssetDatabase.Refresh();
+#endif
+
+        foreach (var spritesheet in list)
+        {
+            var clip = CreateAnimationClip(spritesheet);
+            if (clip == null)
+            {
+                Debug.LogError("Error generating animation clip, clip is null");
+                await Task.Yield();
+                continue;
+            }
+            
+            generatedClips.Add(clip);
+            ConsoleLog.RenderLog($"Generated animation clip: {clip.name}");
+            await Task.Yield();
+        }
+
+        return generatedClips;
+    }
+    
+    private async void ExportAllAnimationsHandler()
     {
         try
         {
-            OnActionBegin?.Invoke("Generate all spritesheets");
+            OnActionBegin?.Invoke("Generate all animations");
             
-            string response = await SendCommandAsync("generate_all_spritesheets");
+            string response = await SendCommandAsync("generate_all_animations");
             var status = Utils.GetJsonStatusResponse(response);
 
             if (status == "error")
             {
-                Debug.LogError("Error generating all spritesheets");
-                OnActionFinish?.Invoke("Generate all spritesheets");
+                Debug.LogError("Error generating all animations");
+                OnActionFinish?.Invoke("Generate all animations");
                 
                 return;
             }
+            
+            var message = Utils.GetJsonMessageResponse(response);
+            var clips = await GenerateAnimationsAsync(message);
+            var spritesheets = message.ToObject<List<JToken>>();
+            
+            ClipPackageExporter.Export(clips, spritesheets);
+            
+            OnBulkAnimationsFinished?.Invoke(clips);
         }
         catch (Exception e)
         {
@@ -573,26 +624,34 @@ public class PythonController : MonoBehaviour
         }
         finally
         {
-            OnActionFinish?.Invoke("Generate all spritesheets");
+            OnActionFinish?.Invoke("Generate all animations");
         }
     }
 
-    private async void GenerateSelectedSpritesheets()
+    private async void ExportSelectedAnimationsHandler()
     {
         try
         {
-            OnActionBegin?.Invoke("Generate all spritesheets");
+            OnActionBegin?.Invoke("Generate selected animations");
             
-            string response = await SendCommandAsync("generate_selected_spritesheets");
+            string response = await SendCommandAsync("generate_selected_animations");
             var status = Utils.GetJsonStatusResponse(response);
 
             if (status == "error")
             {
-                Debug.LogError("Error generating all spritesheets");
-                OnActionFinish?.Invoke("Generate all spritesheets");
+                Debug.LogError("Error generating selected animations");
+                OnActionFinish?.Invoke("Generate selected animations");
                 
                 return;
             }
+            
+            var message = Utils.GetJsonMessageResponse(response);
+            var clips = await GenerateAnimationsAsync(message);
+            var spritesheets = message.ToObject<List<JToken>>();
+            
+            ClipPackageExporter.Export(clips, spritesheets);
+
+            OnBulkAnimationsFinished?.Invoke(clips);
         }
         catch (Exception e)
         {
@@ -600,13 +659,12 @@ public class PythonController : MonoBehaviour
         }
         finally
         {
-            OnActionFinish?.Invoke("Generate all spritesheets");
+            OnActionFinish?.Invoke("Generate selected animations");
         }
     }
 
-    private AnimationClip CreateAnimationClip(string jsonResponse)
+    private AnimationClip CreateAnimationClip(JToken message)
     {
-        var message = Utils.GetJsonMessageResponse(jsonResponse);
         var spritesheetPath = message["output_path"]!.ToObject<string>();
         var columns = message["columns"]!.ToObject<int>();
         var rows = message["rows"]!.ToObject<int>();
@@ -614,7 +672,7 @@ public class PythonController : MonoBehaviour
         
         return AnimationClipGenerator.CreateAnimationClip(spritesheetPath, settings.fps, columns, rows, frameCount);
     }
-
+    
     private async void RenderSingleAnimation()
     {
         try
@@ -632,11 +690,11 @@ public class PythonController : MonoBehaviour
                 return;
             }
 
-            var anim = CreateAnimationClip(response);
+            var message = Utils.GetJsonMessageResponse(response);
+            var anim = CreateAnimationClip(message);
             _currentAnim = anim;
             
             OnAnimationClipGenerated?.Invoke(anim);
-            ConsoleLog.ProcessLog($"UITE ANIMATION {anim}");
         }
         catch (Exception e)
         {
@@ -665,8 +723,6 @@ public class PythonController : MonoBehaviour
 
     private void RegenerateAnimationClip(List<bool> toggleList)
     {
-        Debug.Log($"AM INTRAT IN REGENERATE CLIP {toggleList.Count}");
-    
         AnimationClip anim;
         try
         {
@@ -684,8 +740,6 @@ public class PythonController : MonoBehaviour
             return;
         }
     
-        Debug.Log($"rebuilt clip ok: {anim.name}, keys: (check inside)");
-        Debug.Log($"OnAnimationClipWithSkipsGenerated subscriber count: {OnAnimationClipWithSkipsGenerated?.GetInvocationList().Length ?? 0}");
         OnAnimationClipWithSkipsGenerated?.Invoke(anim);
     }
 }

@@ -24,6 +24,5 @@ public class AnimationPreviewScrollBar : MonoBehaviour, IScrollHandler
         var heightValue = delta * deltaHeightMultiplier;
         
         previewUI.ChangeSizeConstraints(spacerValue, widthValue, heightValue);
-        Debug.Log($"mwheel: {delta}");
     }
 }

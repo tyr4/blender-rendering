@@ -1,18 +1,23 @@
-﻿using System.Collections.Generic;
+﻿#if UNITY_EDITOR
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
 
 public class AnimationPreviewUI : MonoBehaviour
 {
-    [Header("Helper text stuff")]
+    [Header("Helper text and containers")]
     [SerializeField] private GameObject helperText;
-    [SerializeField] private GameObject containerObject;
+    [SerializeField] private GameObject timelineObject;
+    [SerializeField] private GameObject animationResultsObject;
+    [SerializeField] private GameObject animationResultsContentObject;
     
     [Header("Prefabs")]
     [SerializeField] private GameObject spacerPrefab;
     [SerializeField] private GameObject timestampPrefab;
     [SerializeField] private KeyframeComponent keyframePrefab;
+    [SerializeField] private AnimationContainer animationPrefab;
     
     [Header("Layout Groups and Components")] 
     [SerializeField] private Transform keyframeGroupParent;
@@ -49,7 +54,8 @@ public class AnimationPreviewUI : MonoBehaviour
     private List<KeyframeComponent> _spawnedKeyframes = new();
     private List<GameObject> _spawnedAll = new();
     private List<GameObject> _rulerSpawned = new();
-
+    private List<AnimationContainer> _animationsSpawned = new();
+    
     private void Start()
     {
         EnableHelperText();
@@ -58,6 +64,8 @@ public class AnimationPreviewUI : MonoBehaviour
      
         PythonController.OnSceneLoaded += EnableHelperText;
         PythonController.OnFbxLoaded += EnableHelperText;
+
+        PythonController.OnBulkAnimationsFinished += OnBulkAnimationsFinished;
     }
 
     private void OnDestroy()
@@ -66,20 +74,42 @@ public class AnimationPreviewUI : MonoBehaviour
         
         PythonController.OnSceneLoaded -= EnableHelperText;
         PythonController.OnFbxLoaded -= EnableHelperText;
+        
+        PythonController.OnBulkAnimationsFinished -= OnBulkAnimationsFinished;
     }
 
     private void EnableHelperText()
     {
-        containerObject.SetActive(false);
         helperText.SetActive(true);
+        
+        timelineObject.SetActive(false);
+        animationResultsObject.SetActive(false);
     }
 
     private void DisableHelperText()
     {
-        containerObject.SetActive(true);
         helperText.SetActive(false);
+
+        timelineObject.SetActive(true);
+        // animationResultsObject.SetActive(true);
     }
 
+    private void EnableAnimationResultsObject()
+    {
+        animationResultsObject.SetActive(true);
+        
+        helperText.SetActive(false);
+        timelineObject.SetActive(false);
+    }
+
+    private void EnableTimelineObject()
+    {
+        timelineObject.SetActive(true);
+        
+        helperText.SetActive(false);
+        animationResultsObject.SetActive(false);
+    }
+    
     public void OnAnimationClipGenerated(AnimationClip clip)
     {
         _currentClip = clip;
@@ -87,7 +117,7 @@ public class AnimationPreviewUI : MonoBehaviour
         _frameRate = clip.frameRate;
         
         Clear();
-        DisableHelperText();
+        EnableTimelineObject();
         
 #if UNITY_EDITOR
         var binding = new EditorCurveBinding
@@ -144,7 +174,6 @@ public class AnimationPreviewUI : MonoBehaviour
         float totalFrames = Mathf.CeilToInt(_clipLength * _frameRate);
         int frameInterval = Mathf.Max(1, Mathf.RoundToInt(GetNiceInterval()));
 
-        Debug.Log($"frames {totalFrames} interval {frameInterval} cliplength {_clipLength}");
         for (int frame = 0; frame < totalFrames; frame += frameInterval)
         {
             float t = Mathf.Min(frame / _frameRate, _clipLength);
@@ -217,10 +246,8 @@ public class AnimationPreviewUI : MonoBehaviour
         _triggeredByZoom = true;
         
         pixelsPerSecond = Mathf.Clamp(pixelsPerSecond + spacerValue, pixelsPerSecondMin, pixelsPerSecondMax);
-        Debug.Log("pixelsPerSecond: " + pixelsPerSecond);
 
         itemWidth = Mathf.Clamp(itemWidth + itemWidthValue, itemWidthMin, itemWidthMax);
-        Debug.Log($"itemWidth: {itemWidth}");
 
         itemHeight = Mathf.Clamp(itemHeight + itemHeightValue, itemHeightMin, itemHeightMax);
         
@@ -239,31 +266,60 @@ public class AnimationPreviewUI : MonoBehaviour
 
     private void ReapplyTogglesAfterGeneration()
     {
-        var toggleList = PythonController.Instance.GetCurrentAnimationSkipDict();
+        var toggleList = PythonController.Instance.GetCurrentAnimationSkipList();
         if (toggleList == null) return;
 
-        Debug.Log($"AM INTRAT IN REAPPLY TOGGLES WITH {toggleList.Count} toggles and {_keyframeEntries.Count} objects");
         for (int i = 0; i < _spawnedKeyframes.Count; i++)
         {
             var kfInstance = _spawnedKeyframes[i];
 
             bool toggle;
-            if (i < toggleList.Count)
-            {
+            
+            if (i < toggleList.Count) 
                 toggle = toggleList[i];
-            }
             else break;
 
             kfInstance.ReapplyToggle(toggle);
         }
         
         // trigger an animation clip rebuild
-#if UNITY_EDITOR
         if (_triggeredByZoom) return;
         EditorApplication.delayCall += () =>
         {
             _spawnedKeyframes[0].OnClick(toggleList[0]);
         };
-#endif
+    }
+
+    public void SaveAnimationButton()
+    {
+        StartCoroutine(SaveAnimationButtonHandler());
+    }
+
+    private IEnumerator SaveAnimationButtonHandler()
+    {
+        yield return new WaitForEndOfFrame();
+    }
+
+    public void ResetKeyframesButton()
+    {
+        PythonController.Instance.SetAnimationSkipListToValue(false);
+        ReapplyTogglesAfterGeneration();
+    }
+
+    private void OnBulkAnimationsFinished(List<AnimationClip> clips)
+    {
+        foreach (var go in _animationsSpawned) Destroy(go);
+        _animationsSpawned.Clear();
+
+        foreach (var clip in clips)
+        {
+            var animationContaier = Instantiate(animationPrefab, animationResultsContentObject.transform);
+            animationContaier.Init(clip);
+            
+            _animationsSpawned.Add(animationContaier);
+        }
+        
+        EnableAnimationResultsObject();
     }
 }
+#endif

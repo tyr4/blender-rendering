@@ -16,17 +16,18 @@ public class AnimationClipManager : MonoBehaviour
         
         PythonController.OnAnimationClipGenerated += AssignClipToGameObject;
         PythonController.OnAnimationClipWithSkipsGenerated += AssignClipToGameObject;
+        AnimationContainer.OnAnimationClicked += AssignClipToGameObject;
     }
 
     private void OnDestroy()
     {
         PythonController.OnAnimationClipGenerated -= AssignClipToGameObject;
         PythonController.OnAnimationClipWithSkipsGenerated -= AssignClipToGameObject;
+        AnimationContainer.OnAnimationClicked -= AssignClipToGameObject;
     }
 
     private void AssignClipToGameObject(AnimationClip clip)
     {
-        ConsoleLog.ProcessLog("am intrat in assign clip to gameobject");
         // ConsoleLog.ProcessLog($"save path {_controllerSavePath}");
         
         var animator = targetObject.GetComponent<Animator>();
@@ -67,9 +68,10 @@ public class AnimationClipManager : MonoBehaviour
         }
 
         stateMachine.defaultState = targetState;
-        ConsoleLog.ProcessLog($"set default state to {stateMachine.defaultState.name} (intended: {targetState.name})");
+        
         EditorUtility.SetDirty(controller);
         AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 }
 #endif

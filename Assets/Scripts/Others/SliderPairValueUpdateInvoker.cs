@@ -61,8 +61,9 @@ public class SliderPairValueUpdateInvoker : MonoBehaviour
     private void UpdateComponent(int index, object value)
     {
         if (_currentSettingsGetter == null) return;
-        
-        var currentValue = _currentSettingsGetter();
+
+        var currentValue = _currentSettingsGetter() ?? new float[3];
+
         currentValue[index] = Convert.ToSingle(value);
         
         _currentSettingsSetter?.Invoke(currentValue);

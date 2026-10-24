@@ -19,13 +19,21 @@ public class RenderModelUI : MonoBehaviour
         DisableAnimationPreview();
         
         RenderModelManager.OnModelRender += OnModelRender;
+
+        AnimationContainer.OnAnimationClicked += OnAnimationClipGenerated;
         PythonController.OnAnimationClipGenerated += OnAnimationClipGenerated;
+        PythonController.OnAnimationClipWithSkipsGenerated += OnAnimationClipGenerated;
+        
     }
 
     private void OnDestroy()
     {
         RenderModelManager.OnModelRender -= OnModelRender;
+        
+        AnimationContainer.OnAnimationClicked -= OnAnimationClipGenerated;
         PythonController.OnAnimationClipGenerated -= OnAnimationClipGenerated;
+        PythonController.OnAnimationClipWithSkipsGenerated -= OnAnimationClipGenerated;
+        
     }
 
     private void OnModelRender(string filepath)

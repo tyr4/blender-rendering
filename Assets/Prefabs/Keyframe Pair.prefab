@@ -180,7 +180,7 @@ MonoBehaviour:
   spriteImage: {fileID: 1049526461889704429}
   keyframeLayoutElement: {fileID: 3475954687532841158}
   spriteLayoutElement: {fileID: 2911862818390917071}
-  toggledColor: {r: 0.21226418, g: 0.8355104, b: 1, a: 1}
+  toggledColor: {r: 0.8584906, g: 0.111786366, b: 0.07694017, a: 1}
 --- !u!114 &3401579772598153039
 MonoBehaviour:
   m_ObjectHideFlags: 0
