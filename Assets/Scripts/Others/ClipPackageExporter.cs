@@ -4,21 +4,23 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
-using UnityEditor.VersionControl;
 using UnityEngine;
 
 public static class ClipPackageExporter
 {
-    public static void Export(IEnumerable<Object> clips, List<JToken> spritesheetTokens)
+    public static void Export(IEnumerable<AnimationClip> clips, List<JToken> spritesheetTokens, bool skipClips)
     {
         var paths = new HashSet<string>();
         var outputPath = ToPackagePath(AssetDatabase.GetAssetPath(clips.First()));
         var sprites = LoadSpritesheets(spritesheetTokens);
-        
-        foreach (var clip in clips.Where(c => c != null))
+
+        if (!skipClips)
         {
-            var p = AssetDatabase.GetAssetPath(clip);
-            if (!string.IsNullOrEmpty(p)) paths.Add(p);
+            foreach (var clip in clips.Where(c => c != null))
+            {
+                var p = AssetDatabase.GetAssetPath(clip);
+                if (!string.IsNullOrEmpty(p)) paths.Add(p);
+            }    
         }
 
         // sprites are sub-assets of their texture, so export the texture file

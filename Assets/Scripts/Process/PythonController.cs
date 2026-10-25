@@ -53,6 +53,7 @@ public class PythonController : MonoBehaviour
         // refresh states after they get saved between sessions
         settings.animation_dict.Clear();
         settings.selected_anim_skip_keyframes.Clear();
+        settings.render_as_mesh = false;
     }
     
     private void Start()
@@ -533,7 +534,8 @@ public class PythonController : MonoBehaviour
         
         settings.reposition_object_position = data["reposition_object_position"].ToObject<float[]>();
         settings.reposition_object_rotation = data["reposition_object_rotation"].ToObject<float[]>();
-
+        settings.render_as_mesh = data["render_as_mesh"].ToObject<bool>();
+        
         _snapshotSettings ??= new UserSettings(settings);
     }
 
@@ -611,10 +613,11 @@ public class PythonController : MonoBehaviour
             }
             
             var message = Utils.GetJsonMessageResponse(response);
+            Debug.Log(message);
             var clips = await GenerateAnimationsAsync(message);
             var spritesheets = message.ToObject<List<JToken>>();
             
-            ClipPackageExporter.Export(clips, spritesheets);
+            ClipPackageExporter.Export(clips, spritesheets, settings.render_as_mesh);
             
             OnBulkAnimationsFinished?.Invoke(clips);
         }
@@ -649,7 +652,7 @@ public class PythonController : MonoBehaviour
             var clips = await GenerateAnimationsAsync(message);
             var spritesheets = message.ToObject<List<JToken>>();
             
-            ClipPackageExporter.Export(clips, spritesheets);
+            ClipPackageExporter.Export(clips, spritesheets, settings.render_as_mesh);
 
             OnBulkAnimationsFinished?.Invoke(clips);
         }

@@ -95,7 +95,8 @@ def get_all_object_data(settings: dict):
             "parent_object_position": [],
             "parent_object_rotation": [],
             "reposition_object_position": [],
-            "reposition_object_rotation": []
+            "reposition_object_rotation": [],
+            "render_as_mesh": []
             }
     
     camera = get_camera()
@@ -117,6 +118,8 @@ def get_all_object_data(settings: dict):
     data["reposition_object_position"] = list(reposition.location)
     data["reposition_object_rotation"] = [math.degrees(a) for a in reposition.rotation_euler]
     
+    data["render_as_mesh"] = settings.get("render_as_mesh")
+    
     return data
 
 def load_fbx_model(scene_path: str):
@@ -128,21 +131,25 @@ def load_fbx_model(scene_path: str):
     debug_log(f"am {result}")
     
     parent_obj = get_reposition_object()
-    armature = get_armature_object()
+    armature = get_armature_or_mesh_object()
     armature.parent = parent_obj
     
     return result
 
-def get_armature_object():
-    armatures = [obj for obj in bpy.data.objects if obj.type == 'ARMATURE']
+def get_armature_or_mesh_object():
+    meshes = [obj for obj in bpy.data.objects if obj.type == 'MESH']
+    if meshes:
+        return meshes[0]
 
+    armatures = [obj for obj in bpy.data.objects if obj.type == 'ARMATURE']
     if armatures:
         return armatures[0]
-    
-    # fallback for non-animated objects
-    # assume the object is parented to reposition obj for this to work
+        
+    # fallback for any errors objects
+    # assume the object is parented to reposition obj for this to work    
     reposition_obj = get_reposition_object()
     return reposition_obj.children[0]
+    
 
 def delete_armature_object():
     reposition = get_reposition_object()
@@ -221,7 +228,7 @@ def init_scene(settings: dict, load_fbx: bool = False):
         load_fbx_model(settings["fbx_path"])
 
         parent_obj = get_reposition_object()
-        armature = get_armature_object()
+        armature = get_armature_or_mesh_object()
 
         armature.parent = parent_obj
 
@@ -230,10 +237,10 @@ def init_scene(settings: dict, load_fbx: bool = False):
 def render_animation(settings: dict, anim_index: int, skip_render: bool = False) -> int:
     clean_anim_files(settings)
     
-    armature = get_armature_object()
+    target_object = get_armature_or_mesh_object()
     target_action = bpy.data.actions[anim_index]
 
-    anim_data = armature.animation_data_create()
+    anim_data = target_object.animation_data_create()
     anim_data.action = target_action
     
     suitable_slots = anim_data.action_suitable_slots
@@ -273,22 +280,30 @@ def clean_anim_files(settings: dict):
     for file in files:
         os.remove(path + file)
 
-def save_spritesheet(settings: dict, output_name: str, total_frames: int, raw_anim_name: str = None) -> dict:
+def save_spritesheet(settings: dict, output_name: str, raw_anim_name: str = None, custom_file_list: list = None) -> dict:
     render_path = settings["render_temp_output_path"]
     render_name = settings["render_temp_output_name"]
 
-    files = sorted(f for f in os.listdir(render_path) if (f.startswith(render_name)))
-    images = [Image.open(os.path.join(render_path, f)) for f in files]
+    if custom_file_list:
+        files = custom_file_list
+        images = [Image.open(file["output_path"]) for file in files]
+    else:
+        files = sorted(f for f in os.listdir(render_path) if (f.startswith(render_name)))
+        images = [Image.open(os.path.join(render_path, f)) for f in files]
 
+    debug_log(f"LISTA CU FILES {files}")
+    debug_log(f"IMAGES LIST {images}")
+    
     frame_width, frame_height = images[0].size
 
     columns = math.ceil(math.sqrt(len(images)))
     rows = math.ceil(len(images) / columns)
 
     sheet = Image.new("RGBA", (columns * frame_width, rows * frame_height))
-
     position_index = 0
+    
     for i, img in enumerate(images):
+        debug_log(f"SUNT LA {img.filename}")
         if should_skip_anim_frame(settings, raw_anim_name, i):
             continue
             
@@ -320,7 +335,10 @@ def should_skip_anim_frame(settings: dict, key: str | None, frame_index) -> bool
 
 def render_single_frame(settings: dict,
                         anim_index: int | None = None,
-                        frame: int = 1) -> str:
+                        frame: int = 1,
+                        add_border: bool = True) -> str:
+    clean_anim_files(settings)
+    
     armatures = [obj for obj in bpy.data.objects if obj.type == 'ARMATURE']
     armature = armatures[0] if armatures else None
 
@@ -331,20 +349,23 @@ def render_single_frame(settings: dict,
         anim_data.action_slot = anim_data.action_suitable_slots[0]
     elif armature is None:
         debug_log("Warning: anim_index given but no armature found, rendering scene as-is", flush=True)
-        
+
     scene = bpy.context.scene
     scene.frame_current = frame
-   
-    filepath = settings["render_temp_output_path"] + settings["render_temp_output_name"] + "static"
+
+    filepath = settings["render_temp_output_path"] + settings["render_temp_output_name"] + ("static" if add_border else "0")
     scene.render.filepath = filepath
 
     # apply_settings_to_scene(settings)
 
     bpy.ops.render.render(use_viewport=True, write_still=True, animation=False)
-    add_borders(scene.render.filepath + ".png", scene.render.filepath + "_border.png")
-
     debug_log(f"Rendered frame")
-    return filepath + "_border.png"
+
+    if add_border:
+        add_borders(scene.render.filepath + ".png", scene.render.filepath + "_border.png")
+        return filepath + "_border.png"
+
+    return filepath
 
 def add_borders(image_path: str, output_path: str, border_size: int = 2, border_color: tuple = (255, 0, 0, 255)):
     img = Image.open(image_path)
@@ -417,7 +438,7 @@ def get_camera_space_center_xy(root_obj, ax, ay, cam_pos):
 def center_object_to_camera():
     bpy.context.view_layer.update()  # make sure the new camera rotation is applied
 
-    root_obj = get_armature_object()
+    root_obj = get_armature_or_mesh_object()
     camera = get_camera()
     move_obj = get_reposition_object()
 
@@ -440,17 +461,20 @@ def sanitize_filename(name: str) -> str:
 def run_calculator(settings, filter_frameskip_selected_anims: bool = False, filter_toggled_anims: bool = False):
     # init_scene(settings)
     apply_settings_to_scene(settings)
+    is_mesh = settings["render_as_mesh"]
 
     step = 360 / settings["directions"]
     obj = get_main_parent_object()
-    anims = list(bpy.data.actions)
+    target_obj_name = get_armature_or_mesh_object().name
+    actions = bpy.data.actions
+    anims = [(i, a.name) for i, a in enumerate(actions)] if not is_mesh else [(-1, target_obj_name)]
     spritesheet_results = []
     
     anim_dict: dict = settings["animation_dict"]
     debug_log(anim_dict)
 
     for anim in range(len(anims)):
-        current_anim = anims[anim].name
+        current_anim = anims[anim][1]
         
         if filter_toggled_anims and anim_dict.get(current_anim, False):
             continue
@@ -466,14 +490,29 @@ def run_calculator(settings, filter_frameskip_selected_anims: bool = False, filt
             change_object_rotation(obj, vector3_rotation=final_rotation)
             center_object_to_camera() # fix rotation position offset
             
-            sanitized_filename = sanitize_filename(anims[anim].name)
+            sanitized_filename = sanitize_filename(anims[anim][1])
             output_name = sanitized_filename + f"_{int(i * step)}.png"
 
-            frames = render_animation(settings=settings, anim_index=anim)
-            result = save_spritesheet(settings=settings, output_name=output_name, total_frames=frames, raw_anim_name=sanitized_filename)
+            if not is_mesh:
+                render_animation(settings=settings, anim_index=anim)
+            else:
+                render_single_frame(settings, add_border=False)
+                debug_log(f"generated {output_name} for mesh")
+            
+            result = save_spritesheet(settings=settings, output_name=output_name, raw_anim_name=sanitized_filename)
             spritesheet_results.append(result)
             
         clean_anim_files(settings)
+    
+    # stitch together single frame spritesheets for mesh exports
+    if is_mesh:
+        result = [save_spritesheet(settings, output_name=f"{anims[0][1]}_All.png", custom_file_list=spritesheet_results)]
+        
+        # for spritesheet in spritesheet_results:
+        #     path = spritesheet["output_path"]
+        #     os.remove(path)
+        
+        return result
     
     return spritesheet_results
 
@@ -615,7 +654,7 @@ def handle_command(settings: dict):
             output_name = sanitize_filename(raw_name) + ".png"
             
             frames = render_animation(settings, anim_index=anim_index)
-            spritesheet_data = save_spritesheet(settings, output_name, frames)
+            spritesheet_data = save_spritesheet(settings, output_name)
             clean_anim_files(settings)
             
             return send_response({"status": "success", "message": spritesheet_data}, settings)
@@ -653,30 +692,15 @@ def main():
 
 # data = bpy.data
 # objects = list(data.objects)
-settings_dict = {"current_command": "",
-                 "scene_path": "D:\\Blender Stuff\\Scenes\\empty_scene.blend", # required
-                 "fbx_path": "D:\\Blender Stuff\\Models\\robot\\episode_71.fbx",
-                 "render_temp_output_path": "D:\\Blender Stuff\\Output\\robot_test\\", # required
-                 "render_temp_output_name": "anim_", # required
-                 "spritesheet_output_path": "D:\\Blender Stuff\\Output\\robot_test\\", # required
-                 "directions": 4, # required
-                 "resolution_x": 98,
-                 "resolution_y": 98,
-                 "camera_orthographic_scale": 5.7, # float
-                 "camera_position": None, # Vector
-                 "starting_rotation": (0, 0, 0), # Vector
-                 "reposition_object_position": None, # Vector
-                 "reposition_object_rotation": None, # Vector
-                 "parent_object_position": (1, 0, 0),
-                 "parent_object_rotation": None
-                 }
+settings_dict = {'request_id': '8eebf87d-f643-472b-90d0-20bd723588c8', 'current_command': 'generate_selected_animations', 'python_interpreter': 'D:\\\\Unity Projects\\\\blender-rendering-tool\\\\blender-rendering-tool\\\\.venv\\\\Scripts\\\\python.exe', 'python_file_path': 'D:\\\\Unity Projects\\\\blender-rendering-tool\\\\blender-rendering-tool\\\\Base Generator\\\\main.py', 'scene_path': 'D:\\\\Blender Stuff\\\\Scenes\\\\alientube1.blend', 'fbx_path': '', 'render_temp_output_path': 'D:\\\\Blender Stuff\\\\Output\\\\robot_test\\\\', 'render_temp_output_name': 'anim_', 'spritesheet_output_path': 'D:\\\\Unity Projects\\\\blender-rendering-tool\\\\blender-rendering-tool\\\\Assets\\\\Generated Sprites\\\\robot_test\\\\', 'directions': 8, 'resolution_x': 128, 'resolution_y': 128, 'fps': 24.0, 'camera_orthographic_scale': 9.667982, 'camera_position': [-0.000163912773, 7.6071043, 11.7038822], 'camera_rotation': [213.0, 180.0, 0.0], 'starting_rotation': [10.1520967, 0.0, 0.0], 'parent_object_position': [0.0, 0.0, 0.0], 'parent_object_rotation': [-3.395084, 1.58182561, 114.953125], 'reposition_object_position': [0.407678038, -0.07681103, 1.34423339], 'reposition_object_rotation': [0.0, 0.0, -8.53773656e-07], 'animation_dict': {'AlienTubesAction': True, 'Sun.001Action': True}, 'selected_anim': 1, 'selected_anim_skip_keyframes': {}, 'render_as_mesh': True}
 
 
 
 if __name__ == "__main__":
-    # init_scene(settings_dict, load_fbx=True)
+    # init_scene(settings_dict, load_fbx=False)
     main()
     
     # render_animation(settings_dict, anim_index=1)
     # init_scene(settings_dict, load_fbx=True)
-    # render_single_frame(settings_dict)
+    # center_object_to_camera()
+    # run_calculator(settings_dict)
