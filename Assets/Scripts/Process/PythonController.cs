@@ -54,6 +54,7 @@ public class PythonController : MonoBehaviour
         settings.animation_dict.Clear();
         settings.selected_anim_skip_keyframes.Clear();
         settings.render_as_mesh = false;
+        settings.extra_light = false;
     }
     
     private void Start()
@@ -490,6 +491,35 @@ public class PythonController : MonoBehaviour
         }
     }
     
+    public async void ApplyExtraLight()
+    {
+        try
+        {
+            OnActionBegin?.Invoke("Applying extra light");
+            
+            string response = await SendCommandAsync("extra_light");
+            var status = Utils.GetJsonStatusResponse(response);
+
+            if (status == "error")
+            {
+                Debug.LogError("Error applying extra light");
+                OnActionFinish?.Invoke("Applying extra light");
+                
+                return;
+            }
+            
+            OnRenderRequested?.Invoke();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+        finally
+        {
+            OnActionFinish?.Invoke("Applying extra light");
+        }
+    }
+    
     private async void GetAllObjectData()
     {
         try
@@ -535,6 +565,7 @@ public class PythonController : MonoBehaviour
         settings.reposition_object_position = data["reposition_object_position"].ToObject<float[]>();
         settings.reposition_object_rotation = data["reposition_object_rotation"].ToObject<float[]>();
         settings.render_as_mesh = data["render_as_mesh"].ToObject<bool>();
+        settings.extra_light = data["extra_light"].ToObject<bool>();
         
         _snapshotSettings ??= new UserSettings(settings);
     }

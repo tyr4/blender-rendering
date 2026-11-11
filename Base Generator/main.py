@@ -96,7 +96,8 @@ def get_all_object_data(settings: dict):
             "parent_object_rotation": [],
             "reposition_object_position": [],
             "reposition_object_rotation": [],
-            "render_as_mesh": []
+            "render_as_mesh": False,
+            "extra_light": False
             }
     
     camera = get_camera()
@@ -119,6 +120,7 @@ def get_all_object_data(settings: dict):
     data["reposition_object_rotation"] = [math.degrees(a) for a in reposition.rotation_euler]
     
     data["render_as_mesh"] = settings.get("render_as_mesh")
+    data["extra_light"] = settings.get("extra_light")
     
     return data
 
@@ -184,6 +186,22 @@ def get_reposition_object():
 def get_main_parent_object():
     return bpy.data.objects["Parent Object"]
 
+def get_thousand_suns_object():
+    return bpy.data.objects["Thousand Suns"]
+
+def toggle_thousand_suns(hidden: bool = True):
+    parent = get_thousand_suns_object()
+    children = [parent] + list(parent.children)
+    
+    debug_log(f"Found object {parent.name}")
+    for child in children:
+        child.hide_viewport = hidden
+        child.hide_render = hidden
+        child.hide_set(hidden)
+        
+        debug_log(f"Set {child.name} to {hidden}")
+    
+    
 def change_object_rotation(obj, vector3_rotation: tuple):
     debug_log(
         f"{obj.name} | "
@@ -658,6 +676,13 @@ def handle_command(settings: dict):
             clean_anim_files(settings)
             
             return send_response({"status": "success", "message": spritesheet_data}, settings)
+        
+        elif cmd == "extra_light":
+            hidden = not settings["extra_light"]
+            
+            toggle_thousand_suns(hidden)
+            
+            return send_response({"status": "success", "message": f"Changed Suns hidden status to {hidden}"}, settings)
             
         else:
             return send_response({"status": "error", "message": f"invalid command: {cmd}"}, settings)

@@ -9,7 +9,8 @@ Base Generator/*
 !Base Generator/main.py
 !Base Generator/main.py.meta
 
-Assets/StreamingAssets/
+Assets/StreamingAssets/*
+!Assets/StreamingAssets/Default Scene/
 
 .utmp/
 /[Ll]ibrary/
@@ -24,6 +25,9 @@ Assets/StreamingAssets/
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
 *.blend1
 *.blend1.meta
+
+# size heavy texture stuff for blender 
+*.exr
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data

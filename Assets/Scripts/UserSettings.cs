@@ -29,6 +29,8 @@ public class UserSettings
     public int selected_anim { get; set; } = 0;
     public Dictionary<string, List<bool>> selected_anim_skip_keyframes { get; set; } = new();
     public bool render_as_mesh { get; set; } = false;
+    public bool extra_light { get; set; } = false;
+
     
     public UserSettings() { }
 
@@ -59,5 +61,6 @@ public class UserSettings
         selected_anim = other.selected_anim;
         selected_anim_skip_keyframes = new Dictionary<string, List<bool>>(other.selected_anim_skip_keyframes);
         render_as_mesh = other.render_as_mesh;
+        extra_light = other.extra_light;
     }
 }
