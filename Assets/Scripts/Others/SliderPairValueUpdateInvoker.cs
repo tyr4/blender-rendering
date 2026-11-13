@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class SliderPairValueUpdateInvoker : MonoBehaviour
@@ -93,6 +92,6 @@ public class SliderPairValueUpdateInvoker : MonoBehaviour
     private void OnToggleValueChanged(bool value)
     {
         _snapshotSettingsSetter?.Invoke(!value);
-        PythonController.Instance.ApplySceneSettings();
+        var task = PythonController.Instance.ApplySceneSettings();
     }
 }

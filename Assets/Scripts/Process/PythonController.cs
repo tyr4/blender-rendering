@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -29,12 +30,9 @@ public class PythonController : MonoBehaviour
     
     public static event Action<string> OnActionBegin;
     public static event Action<string> OnActionFinish;
-    
     public static event Action OnSceneLoaded;
     public static event Action OnSceneLoadedNoFbx;
-    
     public static event Action OnFbxLoaded;
-    
     public static event Action<List<string>> OnArmatureLoaded;
     public static event Action OnSettingsChanged;
     public static event Action OnRenderRequested;
@@ -42,6 +40,13 @@ public class PythonController : MonoBehaviour
     public static event Action<AnimationClip> OnAnimationClipWithSkipsGenerated;
     public static event Action<List<AnimationClip>> OnBulkAnimationsFinished;
     public static event Action<Dictionary<string, JToken>> OnObjectDataRequested;
+    public static event Action<List<UserSettings>> OnBatchModeBegin; 
+    public static event Action OnBatchModeFinish; 
+
+    
+    private List<UserSettings> _batchFiles = new();
+    private List<AnimationClip> _batchClips = new();
+    private bool _startedBatchRendering = false;
 
     private void Awake()
     {
@@ -53,7 +58,7 @@ public class PythonController : MonoBehaviour
         // refresh states after they get saved between sessions
         settings.animation_dict.Clear();
         settings.selected_anim_skip_keyframes.Clear();
-        settings.render_as_mesh = false;
+        settings.render_as_mesh = true;
         settings.extra_light = false;
     }
     
@@ -64,21 +69,26 @@ public class PythonController : MonoBehaviour
         _processManager.Initialize();
         _processManager.OnLineReceived += OnLineReceived;
 
-        SliderUpdateManager.OnSettingsChangedRequest += ApplySceneSettings;
+        SliderUpdateManager.OnSettingsChangedRequest += ApplySceneSettingsHandler;
         SceneSettingsUI.OnSceneUILoaded += GetAllObjectData;
         KeyframeComponent.OnKeyframeToggleClicked += OnKeyframeToggleClicked;
+        BatchModeExportHandler.OnBatchModelSelected += LoadModelFromBatchHandler;
         
         OnObjectDataRequested += UpdateSettingsOnObjectDataReceived;
+        OnBulkAnimationsFinished += StoreBatchModeClips;
     }
 
     private void OnDestroy()
     {
         _processManager.OnLineReceived -= OnLineReceived;
-        SliderUpdateManager.OnSettingsChangedRequest -= ApplySceneSettings;
+        
+        SliderUpdateManager.OnSettingsChangedRequest -= ApplySceneSettingsHandler;
         SceneSettingsUI.OnSceneUILoaded -= GetAllObjectData;
         KeyframeComponent.OnKeyframeToggleClicked -= OnKeyframeToggleClicked;
+        BatchModeExportHandler.OnBatchModelSelected -= LoadModelFromBatchHandler;
         
         OnObjectDataRequested -= UpdateSettingsOnObjectDataReceived;
+        OnBulkAnimationsFinished -= StoreBatchModeClips;
     }
 
     public void SaveSettings()
@@ -161,12 +171,19 @@ public class PythonController : MonoBehaviour
             list[i] = value;
     }
 
-    public void LoadDefaultSceneButton()
+    public async void LoadDefaultSceneButton()
     {
-        var path = Application.streamingAssetsPath + DefaultScenePath;
-        settings.scene_path = path;
+        try
+        {
+            var path = Application.streamingAssetsPath + DefaultScenePath;
+            settings.scene_path = path;
         
-        LoadScene();
+            await LoadScene();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
     }
 
     public void PickSceneButtonWrapper()
@@ -191,10 +208,10 @@ public class PythonController : MonoBehaviour
         settings.scene_path = FileBrowser.Result[0];
         settings.fbx_path = "";
         
-        LoadScene();
+        var task = LoadScene();
     }
 
-    private async void LoadScene()
+    private async Task LoadScene()
     {
         try
         {
@@ -227,12 +244,61 @@ public class PythonController : MonoBehaviour
         finally
         {
             OnActionFinish?.Invoke("Load Scene");
+            ApplyExtraLight();
         }
     }
 
     public void PickFbxButtonWrapper()
     {
         StartCoroutine(PickFbxButton());
+    }
+
+    private bool EligibleForBatchMode()
+    {
+        var count = 0;
+        
+        foreach (var filename in FileBrowser.Result)
+        {
+            if (filename.EndsWith(".fbx"))
+                count++;
+        }
+
+        return count > 1;
+    }
+
+    private List<string> GetFbxFilenames()
+    {
+        List<String> buf = new();
+
+        foreach (var filename in FileBrowser.Result)
+        {
+            if (filename.EndsWith(".fbx"))
+                buf.Add(filename);
+        }
+
+        return buf;
+    }
+    
+    private string GetFirstFbx()
+    {
+        foreach (var filename in FileBrowser.Result)
+        {
+            if (filename.EndsWith(".fbx"))
+                return filename;
+        }
+        
+        return "";
+    }
+    
+    private string GetFirstScene()
+    {
+        foreach (var filename in FileBrowser.Result)
+        {
+            if (filename.EndsWith(".blend"))
+                return filename;
+        }
+        
+        return "";
     }
     
     private IEnumerator PickFbxButton()
@@ -249,12 +315,18 @@ public class PythonController : MonoBehaviour
 
         if (!FileBrowser.Success) yield break;
 
-        settings.fbx_path = FileBrowser.Result[0];
-        
-        LoadFbx();
+        if (!EligibleForBatchMode())
+        {
+            settings.fbx_path = FileBrowser.Result[0];
+            var task = LoadFbx();
+        }
+        else
+        {
+            StartBatchMode();
+        }
     }
 
-    private async void LoadFbx()
+    private async Task LoadFbx()
     {
         try
         {
@@ -286,7 +358,7 @@ public class PythonController : MonoBehaviour
         }
     }
 
-    private async void ReloadFbx()
+    private async Task DeleteArmature()
     {
         try
         {
@@ -302,9 +374,8 @@ public class PythonController : MonoBehaviour
                 
                 return;
             }
-            
-            LoadFbx();
         }
+        
         catch (Exception e)
         {
             Debug.LogError(e);
@@ -312,6 +383,25 @@ public class PythonController : MonoBehaviour
         finally
         {
             OnActionFinish?.Invoke("Delete Armature");
+        }
+    }
+
+    private async void ReloadFbx()
+    {
+        try
+        {
+            OnActionBegin?.Invoke("Reload Fbx");
+            
+            await DeleteArmature();
+            await LoadFbx();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+        finally
+        {
+            OnActionFinish?.Invoke("Reload Fbx");
         }
     }
 
@@ -333,35 +423,35 @@ public class PythonController : MonoBehaviour
         );
 
         if (!FileBrowser.Success) yield break;
-        if (FileBrowser.Result.Length != 2)
-        {
-            Debug.LogError($"You need to choose 2 files, not {FileBrowser.Result.Length}");
-            yield break;
-        }
+
+        var firstScene = GetFirstScene();
+        var firstFbx = GetFirstFbx();
         
-        if (FileBrowser.Result[0].EndsWith(".fbx") && FileBrowser.Result[1].EndsWith(".blend"))
+        if (!EligibleForBatchMode())
         {
-            settings.fbx_path = FileBrowser.Result[0];
-            settings.scene_path = FileBrowser.Result[1];
+            settings.fbx_path = firstFbx;
+            settings.scene_path = firstScene;
+            
+            var sceneTask = LoadScene();
+            var fbxTask = LoadFbx();
         }
-        else if (FileBrowser.Result[1].EndsWith(".fbx") && FileBrowser.Result[0].EndsWith(".blend"))
+
+        else if (!String.IsNullOrEmpty(firstScene))
         {
-            settings.scene_path = FileBrowser.Result[0];
-            settings.fbx_path = FileBrowser.Result[1];
+            StartBatchMode(firstScene);
         }
-        else
-        {
-            Debug.LogError("You must select a .scene and an .fbx file");
-            yield break;
-        }
-        
-        LoadScene();
-        LoadFbx();
     }
 
-    public void ReloadSceneButton()
+    public async void ReloadSceneButton()
     {
-        LoadScene();
+        try
+        {
+            await LoadScene();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
     }
 
     public void ReloadFbxButton()
@@ -369,15 +459,29 @@ public class PythonController : MonoBehaviour
         ReloadFbx();
     }
 
-    public void ReloadSceneFbxButton()
+    public async void ReloadSceneFbxButton()
     {
-        LoadScene();
-        LoadFbx();
+        try
+        {
+            await LoadScene();
+            await LoadFbx();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
     }
 
-    public void CenterArmatureButton()
+    public async void CenterArmatureButton()
     {
-        CenterArmatureToCamera();
+        try
+        {
+            await CenterArmatureToCamera();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
     }
 
     public void ExportAllAnimationsButton()
@@ -386,9 +490,9 @@ public class PythonController : MonoBehaviour
         // GenerateAllAnimations();
     }
     
-    public void ExportSelectedAnimationsButton()
+    public async Task ExportSelectedAnimationsButton()
     {
-        ExportSelectedAnimationsHandler();
+        await ExportSelectedAnimationsHandler();
     }
     
     private async Task<List<string>> GetFbxAnimations()
@@ -430,7 +534,19 @@ public class PythonController : MonoBehaviour
         }
     }
 
-    public async void ApplySceneSettings()
+    private async void ApplySceneSettingsHandler()
+    {
+        try
+        {
+            await ApplySceneSettings();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+    }
+    
+    public async Task ApplySceneSettings()
     {
         try
         {
@@ -461,7 +577,7 @@ public class PythonController : MonoBehaviour
         }
     }
 
-    private async void CenterArmatureToCamera()
+    private async Task CenterArmatureToCamera()
     {
         try
         {
@@ -662,7 +778,7 @@ public class PythonController : MonoBehaviour
         }
     }
 
-    private async void ExportSelectedAnimationsHandler()
+    private async Task ExportSelectedAnimationsHandler()
     {
         try
         {
@@ -775,5 +891,76 @@ public class PythonController : MonoBehaviour
         }
     
         OnAnimationClipWithSkipsGenerated?.Invoke(anim);
+    }
+
+    private void StartBatchMode(string sceneToLoad = null)
+    {
+        var files = GetFbxFilenames();
+
+        if (sceneToLoad != null)
+        {
+            settings.scene_path = sceneToLoad;
+            var task = LoadScene();
+        }
+        
+        _batchFiles.Clear();
+        foreach (var file in files)
+        {
+            var copy = new UserSettings(settings)
+            {
+                fbx_path = file
+            };
+            _batchFiles.Add(copy);
+            ConsoleLog.ProcessLog($"Added {file} to list");
+        }
+        
+        OnBatchModeBegin?.Invoke(_batchFiles);
+    }
+
+    private void LoadModelFromBatchHandler(UserSettings modelSettings)
+    {
+        var task = LoadModelFromBatch(modelSettings);
+    }
+    
+    private async Task LoadModelFromBatch(UserSettings modelSettings)
+    {
+        settings = modelSettings;
+        
+        await DeleteArmature();
+        await LoadFbx();
+        await ApplySceneSettings();
+        await CenterArmatureToCamera();
+    }
+
+    public async void ExportBatchButton()
+    {
+        try
+        {
+            _startedBatchRendering = true;
+            _batchClips.Clear();
+            
+            foreach (var model in _batchFiles)
+            {
+                await LoadModelFromBatch(model);
+                await ExportSelectedAnimationsButton();
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+        finally
+        {
+            OnBatchModeFinish?.Invoke();
+            OnBulkAnimationsFinished?.Invoke(_batchClips);
+            _startedBatchRendering = false;
+        }
+    }
+
+    private void StoreBatchModeClips(List<AnimationClip> clips)
+    {
+        if (!_startedBatchRendering) return;
+        
+        _batchClips.AddRange(clips);
     }
 }

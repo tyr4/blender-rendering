@@ -8,6 +8,7 @@ public class RenderAsMeshToggle : MonoBehaviour
     private void Start()
     {
         toggle.onValueChanged.AddListener(OnToggleClick);
+        toggle.isOn = true;
     }
     
     private void OnToggleClick(bool value)

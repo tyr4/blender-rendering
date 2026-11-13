@@ -79,7 +79,7 @@ public class SliderValueUpdateInvoker : MonoBehaviour
         IsEnabled = value;
         
         _snapshotSettingsSetter?.Invoke(!value);
-        PythonController.Instance.ApplySceneSettings();
+        var task = PythonController.Instance.ApplySceneSettings();
     }
 
     public void ChangeSliderValue(float value)

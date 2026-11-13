@@ -22,6 +22,11 @@ public class ButtonManager : MonoBehaviour
     [SerializeField] private Button saveAnimation;
     [SerializeField] private Button resetKeyframes;
 
+    [SerializeField] private Button nextBatch;
+    [SerializeField] private Button previousBatch;
+    [SerializeField] private Button exportBatch;
+    
+    
     private Dictionary<Button, bool> _savedState = new();
     private List<Button> _buttons = new();
     private bool _hasBegunAction;
@@ -49,7 +54,9 @@ public class ButtonManager : MonoBehaviour
             
             centerArmature, exportSelectedAnims, exportAllAnims,
             
-            saveAnimation, resetKeyframes
+            saveAnimation, resetKeyframes,
+            
+            nextBatch, previousBatch, exportBatch
         };
     }
 
@@ -159,6 +166,9 @@ public class ButtonManager : MonoBehaviour
         exportAllAnims.interactable = true;
         saveAnimation.interactable = true;
         resetKeyframes.interactable = true;
+        nextBatch.interactable = true;
+        previousBatch.interactable = true;
+        exportBatch.interactable = true;
         
         UpdateButtonState();
     }

@@ -77,7 +77,7 @@ def debug_scene():
     debug_log("========== SCENE STATE ==========")
     debug_log(f"File: {bpy.data.filepath}")
     debug_log(f"Scene: {bpy.context.scene.name}")
-
+    
     for obj in bpy.data.objects:
         debug_log(
             f"{obj.name} | "
@@ -201,6 +201,7 @@ def toggle_thousand_suns(hidden: bool = True):
         
         debug_log(f"Set {child.name} to {hidden}")
     
+    bpy.context.view_layer.update()
     
 def change_object_rotation(obj, vector3_rotation: tuple):
     debug_log(
@@ -552,6 +553,9 @@ def apply_settings_to_scene(settings: dict):
     camera = get_camera()
     parent_obj = get_main_parent_object()
     reposition_obj = get_reposition_object()
+    
+    # lighting settings
+    toggle_thousand_suns(not settings["extra_light"])
 
     # camera settings
     camera_pos = settings["camera_position"]

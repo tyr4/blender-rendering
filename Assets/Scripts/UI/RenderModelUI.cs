@@ -33,7 +33,6 @@ public class RenderModelUI : MonoBehaviour
         AnimationContainer.OnAnimationClicked -= OnAnimationClipGenerated;
         PythonController.OnAnimationClipGenerated -= OnAnimationClipGenerated;
         PythonController.OnAnimationClipWithSkipsGenerated -= OnAnimationClipGenerated;
-        
     }
 
     private void OnModelRender(string filepath)

@@ -308,7 +308,7 @@ public class AnimationPreviewUI : MonoBehaviour
 
     private void OnBulkAnimationsFinished(List<AnimationClip> clips)
     {
-        foreach (var go in _animationsSpawned) Destroy(go);
+        foreach (var go in _animationsSpawned) Destroy(go.gameObject);
         _animationsSpawned.Clear();
 
         foreach (var clip in clips)

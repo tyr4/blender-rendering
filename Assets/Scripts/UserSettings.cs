@@ -28,7 +28,7 @@ public class UserSettings
     public Dictionary<string, bool> animation_dict { get; set; } = new();
     public int selected_anim { get; set; } = 0;
     public Dictionary<string, List<bool>> selected_anim_skip_keyframes { get; set; } = new();
-    public bool render_as_mesh { get; set; } = false;
+    public bool render_as_mesh { get; set; } = true;
     public bool extra_light { get; set; } = false;
 
     
