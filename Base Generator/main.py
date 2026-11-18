@@ -9,6 +9,9 @@ import bpy
 from PIL import Image, ImageDraw
 import math
 
+imported_object_names = []
+imported_action_names = []
+
 bpy_package_dir = os.path.dirname(bpy.__file__)
 addons_core_path = os.path.join(bpy_package_dir, "scripts", "addons_core")
 
@@ -125,16 +128,27 @@ def get_all_object_data(settings: dict):
     return data
 
 def load_fbx_model(scene_path: str):
-    # has_loaded_fbx = True
-    debug_log("uite ba dau load la fbx")
+    global imported_object_names, imported_action_names
     debug_log(scene_path)
+    
+    objects_before = {obj.name for obj in bpy.data.objects}
+    actions_before = {action.name for action in bpy.data.actions}
     
     result = bpy.ops.import_scene.fbx('EXEC_DEFAULT', filepath=scene_path)
     debug_log(f"am {result}")
+
+    imported_object_names = [obj.name for obj in bpy.data.objects if obj.name not in objects_before]
+    imported_action_names = [action.name for action in bpy.data.actions if action.name not in actions_before]
+
+    debug_log(f"imported objects: {imported_object_names}")
+    debug_log(f"imported actions: {imported_action_names}")
     
-    parent_obj = get_reposition_object()
-    armature = get_armature_or_mesh_object()
-    armature.parent = parent_obj
+    reposition_obj = get_reposition_object()
+    for name in imported_object_names:
+        obj = bpy.data.objects[name]
+        
+        if obj.parent is None:
+            obj.parent = reposition_obj
     
     return result
 
@@ -151,31 +165,56 @@ def get_armature_or_mesh_object():
     # assume the object is parented to reposition obj for this to work    
     reposition_obj = get_reposition_object()
     return reposition_obj.children[0]
+
+def collect_descendants(obj):
+    result = []
     
+    for child in obj.children:
+        result.append(child)
+        result.extend(collect_descendants(child))
+        
+    return result
 
 def delete_armature_object():
+    global imported_object_names, imported_action_names
+    
     reposition = get_reposition_object()
-
-    def collect_descendants(obj):
-        descendants = []
-        for child in obj.children:
-            descendants.append(child)
-            descendants.extend(collect_descendants(child))
-        return descendants
-
-    to_delete = collect_descendants(reposition)
-
-    for obj in to_delete:
-        debug_log(f"deleting: {obj.name}")
+    names = set(imported_object_names)
+    names |= {object.name for object in collect_descendants(reposition)}
+    
+    if reposition.animation_data:
+        reposition.animation_data_clear()
+    
+    for name in names:
+        obj = bpy.data.objects.get(name)
+        if obj is None:
+            continue
+            
+        if obj.animation_data:
+            obj.animation_data_clear()
+        
+        debug_log(f"deleting object: {name}")
         bpy.data.objects.remove(obj, do_unlink=True)
-
-    # make sure leftover animations can be deleted
-    for action in bpy.data.actions:
-        action.use_fake_user = False
+    
+    for name in imported_action_names:
+        action = bpy.data.actions.get(name)
+        if action is None:
+            continue
+            
+        debug_log(f"deleting action: {name}")
+        bpy.data.actions.remove(action)
+    
+    imported_object_names = []
+    imported_action_names = []
     
     # delete orphaned objects
-    purged = bpy.data.orphans_purge(do_local_ids=True, do_linked_ids=False, do_recursive=True)
-    debug_log(f"purged: {purged}")
+    # do a few passes of it
+    for _ in range(3):
+        purged = bpy.data.orphans_purge(do_local_ids=True, do_linked_ids=False, do_recursive=True)
+        debug_log(f"purged: {purged}")
+        
+        if not purged:
+            break
 
 def get_camera():
     return bpy.data.objects["Camera"]
@@ -722,8 +761,6 @@ def main():
 # data = bpy.data
 # objects = list(data.objects)
 settings_dict = {'request_id': '8eebf87d-f643-472b-90d0-20bd723588c8', 'current_command': 'generate_selected_animations', 'python_interpreter': 'D:\\\\Unity Projects\\\\blender-rendering-tool\\\\blender-rendering-tool\\\\.venv\\\\Scripts\\\\python.exe', 'python_file_path': 'D:\\\\Unity Projects\\\\blender-rendering-tool\\\\blender-rendering-tool\\\\Base Generator\\\\main.py', 'scene_path': 'D:\\\\Blender Stuff\\\\Scenes\\\\alientube1.blend', 'fbx_path': '', 'render_temp_output_path': 'D:\\\\Blender Stuff\\\\Output\\\\robot_test\\\\', 'render_temp_output_name': 'anim_', 'spritesheet_output_path': 'D:\\\\Unity Projects\\\\blender-rendering-tool\\\\blender-rendering-tool\\\\Assets\\\\Generated Sprites\\\\robot_test\\\\', 'directions': 8, 'resolution_x': 128, 'resolution_y': 128, 'fps': 24.0, 'camera_orthographic_scale': 9.667982, 'camera_position': [-0.000163912773, 7.6071043, 11.7038822], 'camera_rotation': [213.0, 180.0, 0.0], 'starting_rotation': [10.1520967, 0.0, 0.0], 'parent_object_position': [0.0, 0.0, 0.0], 'parent_object_rotation': [-3.395084, 1.58182561, 114.953125], 'reposition_object_position': [0.407678038, -0.07681103, 1.34423339], 'reposition_object_rotation': [0.0, 0.0, -8.53773656e-07], 'animation_dict': {'AlienTubesAction': True, 'Sun.001Action': True}, 'selected_anim': 1, 'selected_anim_skip_keyframes': {}, 'render_as_mesh': True}
-
-
 
 if __name__ == "__main__":
     # init_scene(settings_dict, load_fbx=False)

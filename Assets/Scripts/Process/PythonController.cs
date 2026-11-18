@@ -490,9 +490,16 @@ public class PythonController : MonoBehaviour
         // GenerateAllAnimations();
     }
     
-    public async Task ExportSelectedAnimationsButton()
+    public async void ExportSelectedAnimationsButton()
     {
-        await ExportSelectedAnimationsHandler();
+        try
+        {
+            await ExportSelectedAnimationsHandler();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
     }
     
     private async Task<List<string>> GetFbxAnimations()
@@ -942,7 +949,7 @@ public class PythonController : MonoBehaviour
             foreach (var model in _batchFiles)
             {
                 await LoadModelFromBatch(model);
-                await ExportSelectedAnimationsButton();
+                await ExportSelectedAnimationsHandler();
             }
         }
         catch (Exception e)
